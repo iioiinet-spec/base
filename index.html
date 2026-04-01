@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>진법 변환 문제집</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f0e8;
+  --surface: #faf7f2;
+  --surface2: #ede8df;
+  --ink: #1a1510;
+  --ink2: #3d3528;
+  --ink3: #7a6e5f;
+  --ink4: #b5a99a;
+  --red: #c0392b;
+  --blue: #1a5276;
+  --green: #1e8449;
+  --orange: #d35400;
+  --purple: #6c3483;
+  --border: #cfc4b3;
+  --shadow: rgba(26,21,16,.12);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Noto Sans KR', sans-serif;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* grid texture */
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background-image:
+    linear-gradient(rgba(26,21,16,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26,21,16,.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events:none; z-index:0;
+}
+
+/* ─ HEADER ─ */
+.header {
+  background: var(--ink);
+  color: var(--bg);
+  padding: 36px 32px 28px;
+  position: relative;
+  overflow: hidden;
+}
+.header::after {
+  content: '01 10 11 00 1011 1100';
+  position:absolute; right:20px; top:10px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px; color:rgba(245,240,232,.1);
+  letter-spacing:.15em; line-height:2;
+  pointer-events:none;
+}
+.header-badge {
+  display:inline-block;
+  background:var(--red); color:#fff;
+  font-size:10px; letter-spacing:.2em; text-transform:uppercase;
+  padding:4px 12px; margin-bottom:14px;
+  font-weight:700;
+}
+.header h1 {
+  font-family:'Black Han Sans', sans-serif;
+  font-size:clamp(28px,5vw,48px);
+  line-height:1.1; letter-spacing:-.01em;
+}
+.header h1 span { color:#e8b84b; }
+.header-sub {
+  margin-top:10px; color:rgba(245,240,232,.55);
+  font-size:13px; font-weight:300;
+}
+.header-stats {
+  display:flex; gap:24px; margin-top:20px; flex-wrap:wrap;
+}
+.hstat {
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px; color:rgba(245,240,232,.45);
+}
+.hstat strong { color:var(--bg); font-size:18px; display:block; font-weight:700; }
+
+/* ─ STICKY CONTROLS ─ */
+.controls {
+  position:sticky; top:0; z-index:100;
+  background:var(--ink); border-bottom:3px solid var(--red);
+  padding:10px 20px;
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+}
+.progress-wrap {
+  flex:1; min-width:120px;
+  background:rgba(255,255,255,.1); height:4px; border-radius:0;
+}
+.progress-fill {
+  height:100%; background:var(--red);
+  transition:width .4s ease; width:0%;
+}
+.ctrl-label { font-size:11px; color:rgba(245,240,232,.4); letter-spacing:.1em; text-transform:uppercase; font-family:'JetBrains Mono',monospace; white-space:nowrap; }
+.ctrl-score { font-family:'JetBrains Mono',monospace; font-size:14px; color:#e8b84b; font-weight:700; white-space:nowrap; }
+.filter-btns { display:flex; gap:6px; flex-wrap:wrap; }
+.fbtn {
+  padding:5px 12px; font-size:11px; letter-spacing:.08em;
+  border:1px solid rgba(255,255,255,.15); background:transparent;
+  color:rgba(245,240,232,.5); cursor:pointer;
+  transition:.2s; font-family:'Noto Sans KR',sans-serif;
+  text-transform:uppercase;
+}
+.fbtn:hover { border-color:rgba(255,255,255,.4); color:var(--bg); }
+.fbtn.active { background:var(--red); border-color:var(--red); color:#fff; }
+
+/* ─ MAIN ─ */
+main { position:relative; z-index:1; max-width:880px; margin:0 auto; padding:32px 20px 80px; }
+
+/* ─ SECTION TITLE ─ */
+.section-title {
+  display:flex; align-items:center; gap:14px;
+  margin:32px 0 16px;
+}
+.section-title .line { flex:1; height:1px; background:var(--border); }
+.section-title span {
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--ink3); white-space:nowrap;
+}
+
+/* ─ PROBLEM CARD ─ */
+.prob-card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-left:4px solid var(--c, var(--ink3));
+  padding:20px 22px;
+  margin-bottom:12px;
+  transition:all .2s;
+  position:relative;
+}
+.prob-card:hover { box-shadow:4px 4px 0 var(--shadow); transform:translate(-2px,-2px); }
+.prob-card.solved { border-left-color: var(--green)!important; }
+.prob-card.wrong-attempt { border-left-color: var(--red)!important; }
+
+.prob-header {
+  display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+  margin-bottom:14px;
+}
+.prob-num {
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px; letter-spacing:.2em; color:var(--ink4);
+  background:var(--surface2); padding:3px 8px;
+  flex-shrink:0;
+}
+.prob-type-badge {
+  font-size:10px; padding:2px 8px;
+  background:var(--c,var(--ink3)); color:#fff;
+  letter-spacing:.1em; text-transform:uppercase;
+  font-family:'JetBrains Mono',monospace;
+}
+.prob-q {
+  font-size:17px; font-weight:700;
+  font-family:'JetBrains Mono',monospace;
+  color:var(--ink); line-height:1.5;
+  margin-bottom:2px; flex:1;
+}
+.prob-q sub { font-size:11px; color:var(--c,var(--ink3)); vertical-align:baseline; }
+
+/* answer row */
+.ans-row {
+  display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+}
+.ans-input {
+  font-family:'JetBrains Mono',monospace;
+  font-size:16px; padding:9px 14px;
+  border:2px solid var(--border);
+  background:var(--surface2);
+  color:var(--ink); outline:none;
+  width:180px; transition:.2s;
+  letter-spacing:.05em;
+}
+.ans-input:focus { border-color:var(--c,var(--ink)); background:#fff; }
+.ans-input.correct { border-color:var(--green); background:rgba(30,132,73,.06); color:var(--green); }
+.ans-input.incorrect { border-color:var(--red); background:rgba(192,57,43,.06); animation:shake .3s ease; }
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-5px)}
+  75%{transform:translateX(5px)}
+}
+
+.sub-label { font-size:12px; color:var(--ink3); font-family:'JetBrains Mono',monospace; white-space:nowrap; }
+
+.submit-btn {
+  padding:9px 18px; background:var(--ink); color:var(--bg);
+  border:none; font-size:13px; cursor:pointer;
+  transition:.15s; font-family:'Noto Sans KR',sans-serif;
+  font-weight:700; letter-spacing:.03em; flex-shrink:0;
+}
+.submit-btn:hover { background:var(--red); }
+.submit-btn:disabled { background:var(--ink4); cursor:default; }
+
+.reveal-btn {
+  padding:9px 14px; background:transparent; color:var(--ink3);
+  border:1px solid var(--border); font-size:12px; cursor:pointer;
+  transition:.15s; font-family:'Noto Sans KR',sans-serif; flex-shrink:0;
+}
+.reveal-btn:hover { border-color:var(--ink); color:var(--ink); }
+
+/* feedback */
+.feedback {
+  margin-top:12px; display:none;
+}
+.feedback.show { display:block; }
+.fb-correct {
+  padding:10px 14px; background:rgba(30,132,73,.07);
+  border-left:3px solid var(--green); font-size:13px; color:var(--green);
+  font-weight:600;
+}
+.fb-wrong {
+  padding:10px 14px; background:rgba(192,57,43,.06);
+  border-left:3px solid var(--red); font-size:13px; color:var(--red);
+}
+
+/* solution box */
+.solution {
+  margin-top:12px; display:none;
+  background:var(--surface2); border:1px solid var(--border);
+  padding:14px 16px;
+}
+.solution.show { display:block; }
+.sol-title {
+  font-size:10px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--ink3); font-family:'JetBrains Mono',monospace;
+  margin-bottom:10px;
+}
+.sol-step {
+  display:flex; gap:8px; align-items:baseline;
+  padding:4px 0;
+  font-family:'JetBrains Mono',monospace; font-size:13px;
+  color:var(--ink2); line-height:1.7;
+  border-bottom:1px dashed var(--border);
+}
+.sol-step:last-child { border:none; }
+.sol-step .sn { color:var(--ink4); font-size:10px; min-width:16px; }
+.sol-answer {
+  margin-top:10px; padding:10px 14px;
+  background:var(--ink); color:#e8b84b;
+  font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:700;
+}
+
+/* ─ STATUS ICON ─ */
+.status-icon {
+  position:absolute; right:16px; top:16px;
+  font-size:18px; display:none;
+}
+.status-icon.show { display:block; }
+
+/* ─ COMPLETION BANNER ─ */
+.completion {
+  display:none; text-align:center;
+  padding:48px 32px; background:var(--ink); color:var(--bg);
+  margin-top:32px;
+  position:relative; overflow:hidden;
+}
+.completion::before {
+  content:'🎉';
+  position:absolute; font-size:120px; opacity:.06;
+  top:50%; left:50%; transform:translate(-50%,-50%);
+}
+.completion.show { display:block; animation:up .5s ease; }
+.completion h2 {
+  font-family:'Black Han Sans',sans-serif;
+  font-size:clamp(28px,5vw,44px); margin-bottom:12px;
+}
+.completion h2 span { color:#e8b84b; }
+.completion p { color:rgba(245,240,232,.6); font-size:15px; }
+.completion .score-big {
+  font-family:'JetBrains Mono',monospace;
+  font-size:64px; font-weight:700; color:#e8b84b;
+  margin:16px 0; line-height:1;
+}
+.restart-btn {
+  margin-top:24px; padding:14px 32px;
+  background:var(--red); color:#fff; border:none;
+  font-size:15px; font-weight:700; cursor:pointer;
+  font-family:'Noto Sans KR',sans-serif;
+  transition:.2s;
+}
+.restart-btn:hover { background:#a93226; }
+
+@keyframes up { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+/* hide filtered */
+.prob-card.hidden { display:none; }
+
+/* dual answer for Q28 */
+.dual-ans { display:flex; flex-direction:column; gap:8px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-badge">수학 · 정보</div>
+  <h1>진법 <span>변환</span> 문제집</h1>
+  <p class="header-sub">2진수 · 4진수 · 5진수 · 8진수 · 10진수 · 16진수 — 30문제 완전 정복</p>
+  <div class="header-stats">
+    <div class="hstat"><strong id="hSolved">0</strong>해결</div>
+    <div class="hstat"><strong id="hTotal">28</strong>문제</div>
+    <div class="hstat"><strong id="hPct">0%</strong>완료</div>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="ctrl-label">진행</div>
+  <div class="progress-wrap"><div class="progress-fill" id="pbarFill"></div></div>
+  <div class="ctrl-score" id="ctrlScore">0 / 28</div>
+  <div class="filter-btns">
+    <button class="fbtn active" onclick="filterProbs('all',this)">전체</button>
+    <button class="fbtn" onclick="filterProbs('to10',this)">→10진수</button>
+    <button class="fbtn" onclick="filterProbs('from10',this)">10진수→</button>
+    <button class="fbtn" onclick="filterProbs('cross',this)">진법↔진법</button>
+    <button class="fbtn" onclick="filterProbs('special',this)">응용</button>
+  </div>
+</div>
+
+<main id="mainContent"></main>
+
+<script>
+// ══════════════════════════════════════════
+// PROBLEM DATA
+// ══════════════════════════════════════════
+const COLOR_MAP = {
+  to10: '#1a5276',    // blue
+  from10: '#c0392b',  // red
+  cross: '#6c3483',   // purple
+  special: '#d35400', // orange
+};
+
+const problems = [
+  {
+    id:1, type:'to10',
+    q:'(1011)₂ 를 10진수로 바꾸시오.',
+    display:'(1011)<sub>2</sub> → 10진수',
+    answers:['11'],
+    solution:[
+      '1×2³ + 0×2² + 1×2¹ + 1×2⁰',
+      '= 8 + 0 + 2 + 1',
+      '= 11'
+    ],
+    finalAns:'(11)₁₀',
+    inputLabel:'= ( ?)₁₀'
+  },
+  {
+    id:2, type:'to10',
+    q:'(11001)₂ 를 10진수로 바꾸시오.',
+    display:'(11001)<sub>2</sub> → 10진수',
+    answers:['25'],
+    solution:[
+      '1×2⁴ + 1×2³ + 0×2² + 0×2¹ + 1×2⁰',
+      '= 16 + 8 + 0 + 0 + 1',
+      '= 25'
+    ],
+    finalAns:'(25)₁₀',
+    inputLabel:'= ( ?)₁₀'
+  },
+  {
+    id:3, type:'to10',
+    q:'(132)₄ 를 10진수로 바꾸시오.',
+    display:'(132)<sub>4</sub> → 10진수',
+    answers:['30'],
+    solution:[
+      '1×4² + 3×4¹ + 2×4⁰',
+      '= 16 + 12 + 2',
+      '= 30'
+    ],
+    finalAns:'(30)₁₀',
+    inputLabel:'= ( ?)₁₀'
+  },
+  {
+    id:4, type:'to10',
+    q:'(243)₅ 를 10진수로 바꾸시오.',
+    display:'(243)<sub>5</sub> → 10진수',
+    answers:['73'],
+    solution:[
+      '2×5² + 4×5¹ + 3×5⁰',
+      '= 50 + 20 + 3',
+      '= 73'
+    ],
+    finalAns:'(73)₁₀',
+    inputLabel:'= ( ?)₁₀'
+  },
+  {
+    id:5, type:'from10',
+    q:'(29)₁₀ 를 2진수로 바꾸시오.',
+    display:'(29)<sub>10</sub> → 2진수',
+    answers:['11101','(11101)₂','(11101)2'],
+    solution:[
+      '29 ÷ 2 = 14 … 1',
+      '14 ÷ 2 = 7 … 0',
+      '7 ÷ 2 = 3 … 1',
+      '3 ÷ 2 = 1 … 1',
+      '1 ÷ 2 = 0 … 1',
+      '아래에서 위로 읽으면 11101'
+    ],
+    finalAns:'(11101)₂',
+    inputLabel:'= ( ?)₂'
+  },
+  {
+    id:6, type:'from10',
+    q:'(34)₁₀ 를 2진수로 바꾸시오.',
+    display:'(34)<sub>10</sub> → 2진수',
+    answers:['100010','(100010)₂','(100010)2'],
+    solution:[
+      '34 ÷ 2 = 17 … 0',
+      '17 ÷ 2 = 8 … 1',
+      '8 ÷ 2 = 4 … 0',
+      '4 ÷ 2 = 2 … 0',
+      '2 ÷ 2 = 1 … 0',
+      '1 ÷ 2 = 0 … 1',
+      '아래에서 위로 읽으면 100010'
+    ],
+    finalAns:'(100010)₂',
+    inputLabel:'= ( ?)₂'
+  },
+  {
+    id:7, type:'from10',
+    q:'(57)₁₀ 를 8진수로 바꾸시오.',
+    display:'(57)<sub>10</sub> → 8진수',
+    answers:['71','(71)₈','(71)8'],
+    solution:[
+      '57 ÷ 8 = 7 … 1',
+      '7 ÷ 8 = 0 … 7',
+      '아래에서 위로 읽으면 71'
+    ],
+    finalAns:'(71)₈',
+    inputLabel:'= ( ?)₈'
+  },
+  {
+    id:8, type:'from10',
+    q:'(83)₁₀ 를 5진수로 바꾸시오.',
+    display:'(83)<sub>10</sub> → 5진수',
+    answers:['313','(313)₅','(313)5'],
+    solution:[
+      '83 ÷ 5 = 16 … 3',
+      '16 ÷ 5 = 3 … 1',
+      '3 ÷ 5 = 0 … 3',
+      '아래에서 위로 읽으면 313'
+    ],
+    finalAns:'(313)₅',
+    inputLabel:'= ( ?)₅'
+  },
+  {
+    id:9, type:'cross',
+    q:'(101110)₂ 를 8진수로 바꾸시오.',
+    display:'(101110)<sub>2</sub> → 8진수',
+    answers:['56','(56)₈','(56)8'],
+    solution:[
+      '3비트씩 묶기: 101 | 110',
+      '101₂ = 5, 110₂ = 6',
+      '→ 56₈'
+    ],
+    finalAns:'(56)₈',
+    inputLabel:'= ( ?)₈'
+  },
+  {
+    id:10, type:'cross',
+    q:'(11101101)₂ 를 16진수로 바꾸시오.',
+    display:'(11101101)<sub>2</sub> → 16진수',
+    answers:['ED','ed','(ED)₁₆','(ed)₁₆'],
+    solution:[
+      '4비트씩 묶기: 1110 | 1101',
+      '1110₂ = 14 = E',
+      '1101₂ = 13 = D',
+      '→ ED₁₆'
+    ],
+    finalAns:'(ED)₁₆',
+    inputLabel:'= ( ?)₁₆'
+  },
+  {
+    id:11, type:'to10',
+    q:'(321)₄ 를 10진수로 바꾸시오.',
+    display:'(321)<sub>4</sub> → 10진수',
+    answers:['57'],
+    solution:[
+      '3×4² + 2×4¹ + 1×4⁰',
+      '= 48 + 8 + 1',
+      '= 57'
+    ],
+    finalAns:'(57)₁₀',
+    inputLabel:'= ( ?)₁₀'
+  },
+  {
+    id:12, type:'to10',
+    q:'(1243)₅ 를 10진수로 바꾸시오.',
+    display:'(1243)<sub>5</sub> → 10진수',
+    answers:['198'],
+    solution:[
+      '1×5³ + 2×5² + 4×5¹ + 3×5⁰',
+      '= 125 + 50 + 20 + 3',
+      '= 198'
+    ],
+    finalAns:'(198)₁₀',
+    inputLabel:'= ( ?)₁₀'
+  },
+  {
+    id:13, type:'to10',
+    q:'(1011011)₂ 를 10진수로 바꾸시오.',
+    display:'(1011011)<sub>2</sub> → 10진수',
+    answers:['91'],
+    solution:[
+      '1×2⁶+0×2⁵+1×2⁴+1×2³+0×2²+1×2¹+1×2⁰',
+      '= 64+0+16+8+0+2+1',
+      '= 91'
+    ],
+    finalAns:'(91)₁₀',
+    inputLabel:'= ( ?)₁₀'
+  },
+  {
+    id:14, type:'from10',
+    q:'(91)₁₀ 를 2진수로 바꾸시오.',
+    display:'(91)<sub>10</sub> → 2진수',
+    answers:['1011011','(1011011)₂','(1011011)2'],
+    solution:[
+      '91 ÷ 2 = 45 … 1',
+      '45 ÷ 2 = 22 … 1',
+      '22 ÷ 2 = 11 … 0',
+      '11 ÷ 2 = 5 … 1',
+      '5 ÷ 2 = 2 … 1',
+      '2 ÷ 2 = 1 … 0',
+      '1 ÷ 2 = 0 … 1',
+      '아래에서 위로 읽으면 1011011'
+    ],
+    finalAns:'(1011011)₂',
+    inputLabel:'= ( ?)₂'
+  },
+  {
+    id:15, type:'cross',
+    q:'(10011101)₂ 를 16진수로 바꾸시오.',
+    display:'(10011101)<sub>2</sub> → 16진수',
+    answers:['9D','9d','(9D)₁₆','(9d)₁₆'],
+    solution:[
+      '4비트씩 묶기: 1001 | 1101',
+      '1001₂ = 9',
+      '1101₂ = 13 = D',
+      '→ 9D₁₆'
+    ],
+    finalAns:'(9D)₁₆',
+    inputLabel:'= ( ?)₁₆'
+  },
+  {
+    id:16, type:'cross',
+    q:'(3A)₁₆ 를 2진수로 바꾸시오.',
+    display:'(3A)<sub>16</sub> → 2진수',
+    answers:['00111010','111010','(00111010)₂','(111010)₂'],
+    solution:[
+      '3₁₆ = 0011₂',
+      'A₁₆ = 1010₂',
+      '붙이면 00111010₂',
+      '앞의 0 생략 → 111010₂'
+    ],
+    finalAns:'(111010)₂',
+    inputLabel:'= ( ?)₂'
+  },
+  {
+    id:17, type:'cross',
+    q:'(526)₈ 을 2진수로 바꾸시오.',
+    display:'(526)<sub>8</sub> → 2진수',
+    answers:['101010110','(101010110)₂'],
+    solution:[
+      '5₈ = 101₂',
+      '2₈ = 010₂',
+      '6₈ = 110₂',
+      '붙이면 101010110₂'
+    ],
+    finalAns:'(101010110)₂',
+    inputLabel:'= ( ?)₂'
+  },
+  {
+    id:18, type:'cross',
+    q:'(57)₈ 을 16진수로 바꾸시오.',
+    display:'(57)<sub>8</sub> → 16진수',
+    answers:['2F','2f','(2F)₁₆','(2f)₁₆'],
+    solution:[
+      '(57)₈ → 2진수: 5₈=101, 7₈=111 → 101111₂',
+      '앞에 0 붙여 4비트 묶기: 0010 | 1111',
+      '0010₂=2, 1111₂=15=F',
+      '→ 2F₁₆'
+    ],
+    finalAns:'(2F)₁₆',
+    inputLabel:'= ( ?)₁₆'
+  },
+  {
+    id:19, type:'cross',
+    q:'(2F)₁₆ 를 8진수로 바꾸시오.',
+    display:'(2F)<sub>16</sub> → 8진수',
+    answers:['57','(57)₈'],
+    solution:[
+      '2₁₆=0010₂, F₁₆=1111₂ → 00101111₂',
+      '앞의 0 제거 → 101111₂',
+      '3비트씩 묶기: 101 | 111',
+      '101₂=5, 111₂=7',
+      '→ 57₈'
+    ],
+    finalAns:'(57)₈',
+    inputLabel:'= ( ?)₈'
+  },
+  {
+    id:20, type:'cross',
+    q:'(111001011)₂ 를 8진수로 바꾸시오.',
+    display:'(111001011)<sub>2</sub> → 8진수',
+    answers:['713','(713)₈'],
+    solution:[
+      '3비트씩 묶기: 111 | 001 | 011',
+      '111₂=7, 001₂=1, 011₂=3',
+      '→ 713₈'
+    ],
+    finalAns:'(713)₈',
+    inputLabel:'= ( ?)₈'
+  },
+  {
+    id:21, type:'to10',
+    q:'(101011)₂ 는 10진수로 얼마인가?',
+    display:'(101011)<sub>2</sub> → 10진수',
+    answers:['43'],
+    solution:[
+      '1×2⁵+0×2⁴+1×2³+0×2²+1×2¹+1×2⁰',
+      '= 32+0+8+0+2+1',
+      '= 43'
+    ],
+    finalAns:'(43)₁₀',
+    inputLabel:'= ( ?)₁₀'
+  },
+  {
+    id:22, type:'from10',
+    q:'10진수 43을 8진수로 바꾸시오.',
+    display:'(43)<sub>10</sub> → 8진수',
+    answers:['53','(53)₈'],
+    solution:[
+      '43 ÷ 8 = 5 … 3',
+      '5 ÷ 8 = 0 … 5',
+      '아래에서 위로 읽으면 53'
+    ],
+    finalAns:'(53)₈',
+    inputLabel:'= ( ?)₈'
+  },
+  {
+    id:23, type:'to10',
+    q:'(111111)₂ 를 10진수로 바꾸시오.',
+    display:'(111111)<sub>2</sub> → 10진수',
+    answers:['63'],
+    solution:[
+      '2⁶ - 1 = 64 - 1 = 63',
+      '또는: 32+16+8+4+2+1 = 63'
+    ],
+    finalAns:'(63)₁₀',
+    inputLabel:'= ( ?)₁₀'
+  },
+  {
+    id:24, type:'from10',
+    q:'(63)₁₀ 를 16진수로 바꾸시오.',
+    display:'(63)<sub>10</sub> → 16진수',
+    answers:['3F','3f','(3F)₁₆','(3f)₁₆'],
+    solution:[
+      '63 ÷ 16 = 3 … 15 = F',
+      '3 ÷ 16 = 0 … 3',
+      '아래에서 위로 읽으면 3F'
+    ],
+    finalAns:'(3F)₁₆',
+    inputLabel:'= ( ?)₁₆'
+  },
+  {
+    id:25, type:'cross',
+    q:'(234)₅ 를 2진수로 바꾸시오.',
+    display:'(234)<sub>5</sub> → 2진수',
+    answers:['1000110','(1000110)₂'],
+    solution:[
+      '(234)₅ → 10진수: 2×25+3×5+4=50+15+4=69',
+      '69 ÷ 2 = 34 … 1',
+      '34 ÷ 2 = 17 … 0',
+      '17 ÷ 2 = 8 … 1',
+      '8 ÷ 2 = 4 … 0',
+      '4 ÷ 2 = 2 … 0',
+      '2 ÷ 2 = 1 … 0',
+      '1 ÷ 2 = 0 … 1',
+      '→ 1000101₂'
+    ],
+    finalAns:'(1000101)₂',
+    answers:['1000101','(1000101)₂'],
+    inputLabel:'= ( ?)₂'
+  },
+  {
+    id:28, type:'from10',
+    q:'(123)₁₀ 를 2진수와 8진수로 각각 바꾸시오.',
+    display:'(123)<sub>10</sub> → 2진수, 8진수',
+    answers2: ['1111011','(1111011)₂'],
+    answers8: ['173','(173)₈'],
+    solution:[
+      '--- 2진수 변환 ---',
+      '123÷2=61…1 / 61÷2=30…1 / 30÷2=15…0',
+      '15÷2=7…1 / 7÷2=3…1 / 3÷2=1…1 / 1÷2=0…1',
+      '→ 1111011₂',
+      '--- 8진수 변환 ---',
+      '123÷8=15…3 / 15÷8=1…7 / 1÷8=0…1',
+      '→ 173₈'
+    ],
+    finalAns:'2진수: (1111011)₂  /  8진수: (173)₈',
+    dual: true
+  },
+  {
+    id:29, type:'special',
+    q:'3자리 5진수 (abc)₅가 10진수로 38일 때, 그 수를 구하시오.',
+    display:'(abc)<sub>5</sub> = 38₁₀ 인 수는?',
+    answers:['123','(123)₅'],
+    solution:[
+      '25a + 5b + c = 38',
+      'a=1: 5b + c = 13',
+      'b=2: c = 3  ✓ (0≤c≤4 만족)',
+      '→ a=1, b=2, c=3'
+    ],
+    finalAns:'(123)₅',
+    inputLabel:'= ( ?)₅'
+  },
+  {
+    id:30, type:'cross',
+    q:'(11010)₂ 를 4진수로 바꾸시오.',
+    display:'(11010)<sub>2</sub> → 4진수',
+    answers:['122','(122)₄'],
+    solution:[
+      '2비트씩 오른쪽부터 묶기: 1 | 10 | 10',
+      '앞에 0: 01 | 10 | 10',
+      '01₂=1, 10₂=2, 10₂=2',
+      '→ 122₄'
+    ],
+    finalAns:'(122)₄',
+    inputLabel:'= ( ?)₄'
+  },
+];
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let solvedSet = new Set();
+let wrongSet = new Set();
+const TOTAL = problems.length;
+
+// ══════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════
+const TYPE_LABELS = { to10:'→ 10진수', from10:'10진수 →', cross:'진법 ↔ 진법', special:'응용 문제' };
+const SECTION_TITLES = {
+  to10: '타 진수 → 10진수 변환',
+  from10: '10진수 → 타 진수 변환',
+  cross: '진법 간 직접 변환',
+  special: '응용 문제',
+};
+
+function buildAll() {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = '';
+  const groups = ['to10','from10','cross','special'];
+  groups.forEach(g => {
+    const probs = problems.filter(p=>p.type===g);
+    if(!probs.length) return;
+    // section title
+    const st = document.createElement('div');
+    st.className = 'section-title';
+    st.innerHTML = `<div class="line"></div><span>${SECTION_TITLES[g]}</span><div class="line"></div>`;
+    st.dataset.group = g;
+    main.appendChild(st);
+    probs.forEach(p => {
+      main.appendChild(buildCard(p));
+    });
+  });
+  updateStats();
+}
+
+function buildCard(p) {
+  const color = COLOR_MAP[p.type];
+  const card = document.createElement('div');
+  card.className = 'prob-card';
+  card.style.setProperty('--c', color);
+  card.id = 'card-' + p.id;
+  card.dataset.type = p.type;
+
+  const badge = `<span class="prob-type-badge" style="background:${color}">${TYPE_LABELS[p.type]}</span>`;
+
+  let ansHtml = '';
+  if(p.dual) {
+    // Two answers for Q28
+    ansHtml = `
+      <div class="dual-ans">
+        <div class="ans-row">
+          <span class="sub-label">2진수:</span>
+          <input class="ans-input" id="ans2-${p.id}" type="text" placeholder="예) 1010110" autocomplete="off" onkeydown="if(event.key==='Enter')submitDual(${p.id})">
+        </div>
+        <div class="ans-row">
+          <span class="sub-label">8진수:</span>
+          <input class="ans-input" id="ans8-${p.id}" type="text" placeholder="예) 173" autocomplete="off" onkeydown="if(event.key==='Enter')submitDual(${p.id})">
+        </div>
+        <div class="ans-row" style="margin-top:4px">
+          <button class="submit-btn" id="sbtn-${p.id}" onclick="submitDual(${p.id})">확인</button>
+          <button class="reveal-btn" onclick="toggleSolution(${p.id})">해설 보기</button>
+        </div>
+      </div>`;
+  } else {
+    ansHtml = `
+      <div class="ans-row">
+        <span class="sub-label">${p.inputLabel}</span>
+        <input class="ans-input" id="ans-${p.id}" type="text" placeholder="답 입력" autocomplete="off" onkeydown="if(event.key==='Enter')submitAns(${p.id})">
+        <button class="submit-btn" id="sbtn-${p.id}" onclick="submitAns(${p.id})">확인</button>
+        <button class="reveal-btn" onclick="toggleSolution(${p.id})">해설 보기</button>
+      </div>`;
+  }
+
+  const solSteps = p.solution.map((s,i)=>
+    `<div class="sol-step"><span class="sn">${i+1}</span><span>${s}</span></div>`
+  ).join('');
+
+  card.innerHTML = `
+    <span class="status-icon" id="icon-${p.id}"></span>
+    <div class="prob-header">
+      <div>
+        <div class="prob-num">NO. ${String(p.id).padStart(2,'0')}</div>
+        <div class="prob-q">${p.display}</div>
+      </div>
+      ${badge}
+    </div>
+    ${ansHtml}
+    <div class="feedback" id="fb-${p.id}"></div>
+    <div class="solution" id="sol-${p.id}">
+      <div class="sol-title">풀이 과정</div>
+      ${solSteps}
+      <div class="sol-answer">정답: ${p.finalAns}</div>
+    </div>`;
+  return card;
+}
+
+// ══════════════════════════════════════════
+// ANSWER CHECK
+// ══════════════════════════════════════════
+function normalize(s) {
+  return s.trim().replace(/\s/g,'').replace(/[()]/g,'').toLowerCase();
+}
+
+function submitAns(id) {
+  const p = problems.find(x=>x.id===id);
+  if(!p || solvedSet.has(id)) return;
+  const inp = document.getElementById('ans-'+id);
+  const val = normalize(inp.value);
+  const correct = p.answers.some(a => normalize(a) === val);
+  showFeedback(id, correct, p.finalAns);
+  if(correct) {
+    inp.classList.add('correct');
+    inp.disabled = true;
+    document.getElementById('sbtn-'+id).disabled = true;
+    markSolved(id);
+  } else {
+    inp.classList.add('incorrect');
+    setTimeout(()=>inp.classList.remove('incorrect'), 400);
+    wrongSet.add(id);
+    document.getElementById('card-'+id).classList.add('wrong-attempt');
+  }
+}
+
+function submitDual(id) {
+  const p = problems.find(x=>x.id===id);
+  if(!p || solvedSet.has(id)) return;
+  const v2 = normalize(document.getElementById('ans2-'+id).value);
+  const v8 = normalize(document.getElementById('ans8-'+id).value);
+  const c2 = p.answers2.some(a=>normalize(a)===v2);
+  const c8 = p.answers8.some(a=>normalize(a)===v8);
+  const correct = c2 && c8;
+
+  const fb = document.getElementById('fb-'+id);
+  if(correct) {
+    fb.innerHTML = `<div class="fb-correct">✓ 정답입니다! 2진수와 8진수 모두 맞았습니다.</div>`;
+    fb.className = 'feedback show';
+    document.getElementById('ans2-'+id).classList.add('correct');
+    document.getElementById('ans8-'+id).classList.add('correct');
+    document.getElementById('ans2-'+id).disabled = true;
+    document.getElementById('ans8-'+id).disabled = true;
+    document.getElementById('sbtn-'+id).disabled = true;
+    markSolved(id);
+  } else {
+    let msg = '틀렸습니다. ';
+    if(!c2) msg += '2진수를 확인하세요. ';
+    if(!c8) msg += '8진수를 확인하세요. ';
+    fb.innerHTML = `<div class="fb-wrong">✗ ${msg}</div>`;
+    fb.className = 'feedback show';
+    if(!c2) { document.getElementById('ans2-'+id).classList.add('incorrect'); setTimeout(()=>document.getElementById('ans2-'+id).classList.remove('incorrect'),400); }
+    if(!c8) { document.getElementById('ans8-'+id).classList.add('incorrect'); setTimeout(()=>document.getElementById('ans8-'+id).classList.remove('incorrect'),400); }
+    wrongSet.add(id);
+    document.getElementById('card-'+id).classList.add('wrong-attempt');
+  }
+}
+
+function showFeedback(id, correct, ans) {
+  const fb = document.getElementById('fb-'+id);
+  if(correct) {
+    fb.innerHTML = `<div class="fb-correct">✓ 정답입니다! — ${ans}</div>`;
+  } else {
+    fb.innerHTML = `<div class="fb-wrong">✗ 틀렸습니다. 다시 도전하거나 해설을 확인하세요.</div>`;
+  }
+  fb.className = 'feedback show';
+}
+
+function markSolved(id) {
+  solvedSet.add(id);
+  wrongSet.delete(id);
+  const card = document.getElementById('card-'+id);
+  card.classList.remove('wrong-attempt');
+  card.classList.add('solved');
+  const icon = document.getElementById('icon-'+id);
+  icon.textContent = '✓';
+  icon.style.color = '#1e8449';
+  icon.className = 'status-icon show';
+  updateStats();
+  if(solvedSet.size === TOTAL) showCompletion();
+}
+
+// ══════════════════════════════════════════
+// SOLUTION TOGGLE
+// ══════════════════════════════════════════
+function toggleSolution(id) {
+  const sol = document.getElementById('sol-'+id);
+  sol.classList.toggle('show');
+}
+
+// ══════════════════════════════════════════
+// STATS
+// ══════════════════════════════════════════
+function updateStats() {
+  const s = solvedSet.size;
+  const pct = Math.round(s/TOTAL*100);
+  document.getElementById('hSolved').textContent = s;
+  document.getElementById('hPct').textContent = pct + '%';
+  document.getElementById('ctrlScore').textContent = s + ' / ' + TOTAL;
+  document.getElementById('pbarFill').style.width = pct + '%';
+}
+
+// ══════════════════════════════════════════
+// FILTER
+// ══════════════════════════════════════════
+function filterProbs(type, btn) {
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.prob-card').forEach(c => {
+    if(type === 'all' || c.dataset.type === type) c.classList.remove('hidden');
+    else c.classList.add('hidden');
+  });
+  document.querySelectorAll('.section-title').forEach(st => {
+    if(type === 'all' || st.dataset.group === type) st.classList.remove('hidden');
+    else st.classList.add('hidden');
+  });
+}
+
+// ══════════════════════════════════════════
+// COMPLETION
+// ══════════════════════════════════════════
+function showCompletion() {
+  const el = document.getElementById('completion');
+  if(el) { el.classList.add('show'); return; }
+  const div = document.createElement('div');
+  div.className = 'completion show';
+  div.id = 'completion';
+  div.innerHTML = `
+    <h2>모든 문제 <span>완료!</span></h2>
+    <div class="score-big">${TOTAL}/${TOTAL}</div>
+    <p>진법 변환 마스터! 수고하셨습니다 🎉</p>
+    <button class="restart-btn" onclick="restartAll()">다시 풀기 ↺</button>`;
+  document.getElementById('mainContent').appendChild(div);
+}
+
+function restartAll() {
+  solvedSet.clear(); wrongSet.clear();
+  buildAll();
+  const c = document.getElementById('completion');
+  if(c) c.remove();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+buildAll();
+document.getElementById('hTotal').textContent = TOTAL;
+</script>
+</body>
+</html>
