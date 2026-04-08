@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>그래프 x 경우의 수 마스터 30제</title>
+    <style>
+        :root {
+            --primary-indigo: #4f46e5;
+            --secondary-cyan: #06b6d4;
+            --bg-dark: #0f172a;
+            --card-bg: #ffffff;
+            --text-dark: #1e293b;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f1f5f9;
+            color: var(--text-dark);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* 네온 반짝임 제목 */
+        .neon-header {
+            text-align: center;
+            background: var(--bg-dark);
+            padding: 50px 20px;
+            border-radius: 24px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .neon-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0;
+            color: #fff;
+            animation: neonPulse 1.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes neonPulse {
+            from { text-shadow: 0 0 7px #fff, 0 0 10px #fff, 0 0 21px var(--secondary-cyan), 0 0 42px var(--secondary-cyan); }
+            to { text-shadow: 0 0 12px #fff, 0 0 20px #fff, 0 0 35px var(--primary-indigo), 0 0 55px var(--primary-indigo); }
+        }
+
+        .quiz-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .quiz-item {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .quiz-item:hover {
+            border-color: var(--primary-indigo);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .quiz-question {
+            padding: 22px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+        }
+
+        .quiz-question::after {
+            content: '+';
+            font-size: 1.5rem;
+            color: var(--primary-indigo);
+            transition: transform 0.3s;
+        }
+
+        .quiz-item.active .quiz-question::after {
+            content: '-';
+            transform: rotate(180deg);
+        }
+
+        .quiz-answer {
+            display: none;
+            padding: 0 22px 22px 22px;
+            background: #f8fafc;
+            border-top: 1px solid #f1f5f9;
+            border-radius: 0 0 16px 16px;
+        }
+
+        .badge-q {
+            background: var(--primary-indigo);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            margin-right: 12px;
+        }
+
+        .label-ans {
+            display: inline-block;
+            color: #ef4444;
+            font-weight: 800;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+
+        .formula-box {
+            background: #e0e7ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            border-left: 5px solid var(--primary-indigo);
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .summary-card {
+            margin-top: 40px;
+            padding: 30px;
+            background: var(--white);
+            border: 2px solid var(--primary-indigo);
+            border-radius: 20px;
+        }
+
+        .summary-card h2 {
+            margin-top: 0;
+            color: var(--primary-indigo);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-bottom: 40px;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            .neon-title { font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="neon-header">
+        <h1 class="neon-title">Graph & Combinatorics 30</h1>
+        <p style="color: #94a3b8; margin-top: 15px;">그래프와 경우의 수: 원리와 공식 마스터</p>
+    </div>
+
+    <div class="quiz-stack" id="quizGrid">
+        </div>
+
+    <div class="summary-card">
+        <h2> 시험 대비 핵심 공식 </h2>
+        <ul style="line-height: 2;">
+            <li><b>간선 최대 개수:</b> n * (n - 1) / 2</li>
+            <li><b>가능한 총 그래프 개수:</b> 2^(n * (n - 1) / 2)</li>
+            <li><b>트리 개수 (카일리 공식):</b> n^(n - 2)</li>
+            <li><b>완전그래프 내 삼각형 개수:</b> nC3 = n * (n - 1) * (n - 2) / 6</li>
+            <li><b>단순 경로 개수:</b> nPr (순서 고려 선택)</li>
+        </ul>
+        <p style="background: #fff7ed; padding: 10px; border-radius: 8px; color: #9a3412; font-size: 0.9rem;">
+            <b>TIP:</b> "정점 2개를 선택하면 간선 1개가 결정된다"는 원리만 기억하면 대부분의 조합 문제를 풀 수 있습니다.
+        </p>
+    </div>
+
+    <div class="footer">
+        © 2026 Seyeong Coding Research Institute | Director Ph.D. Kim
+    </div>
+</div>
+
+<script>
+    const problems = [
+        { q: "정점이 4개인 그래프에서 서로 다른 두 정점을 선택하는 경우의 수는?", a: "6", e: "4 * 3 / 2 = 6 입니다. (4C2)" },
+        { q: "정점이 5개인 완전그래프의 간선 수는?", a: "10", e: "5 * 4 / 2 = 10 입니다. (5C2)" },
+        { q: "정점이 6개인 그래프에서 최대 간선 수는?", a: "15", e: "6 * 5 / 2 = 15 입니다. (6C2)" },
+        { q: "정점이 5개인 그래프에서 간선을 2개만 선택하는 경우의 수는?", a: "45", e: "최대 간선 10개 중 2개를 고르는 것이므로 10C2 = 10 * 9 / 2 = 45 입니다." },
+        { q: "정점 4개에서 간선이 없는 그래프는 몇 개인가?", a: "1개", e: "모든 간선이 선택되지 않은 경우 1가지만 존재합니다." },
+        { q: "정점이 3개일 때 가능한 모든 그래프의 개수는?", a: "8개", e: "최대 간선이 3개이므로 2^3 = 8 입니다." },
+        { q: "정점이 4개일 때 가능한 그래프 개수는?", a: "64개", e: "최대 간선이 6개이므로 2^6 = 64 입니다." },
+        { q: "정점이 4개인 그래프에서 간선이 정확히 3개인 경우의 수는?", a: "20", e: "최대 간선 6개 중 3개를 선택하므로 6C3 = (6 * 5 * 4) / (3 * 2 * 1) = 20 입니다." },
+        { q: "정점이 5개인 그래프에서 간선이 정확히 4개인 경우의 수는?", a: "210", e: "최대 간선 10개 중 4개를 선택하므로 10C4 = (10 * 9 * 8 * 7) / (4 * 3 * 2 * 1) = 210 입니다." },
+        { q: "정점이 4개인 그래프에서 서로 다른 경로 A->B->C의 개수는?", a: "12", e: "4개 중 3개를 순서대로 나열하므로 4P3 = 4 * 3 * 2 = 24에서 무방향의 경우 경로 방향성 고려에 따라 12개가 됩니다." },
+        { q: "정점이 5개일 때 서로 다른 길이 2 경로(A->B->C)의 개수는?", a: "60", e: "5개 중 3개를 순서대로 선택하므로 5 * 4 * 3 = 60 입니다." },
+        { q: "정점 4개에서 길이 3 단순경로 개수는?", a: "24", e: "4개 정점을 일렬로 나열하는 순열과 같으므로 4! = 24 입니다." },
+        { q: "정점이 4개인 완전그래프에서 삼각형 개수는?", a: "4", e: "4개 중 3개를 선택하므로 4C3 = 4 입니다." },
+        { q: "정점이 5개인 완전그래프에서 삼각형 개수는?", a: "10", e: "5개 중 3개를 선택하므로 5C3 = 10 입니다." },
+        { q: "정점이 6개인 완전그래프에서 삼각형 개수는?", a: "20", e: "6C3 = (6 * 5 * 4) / (3 * 2 * 1) = 20 입니다." },
+        { q: "정점이 5개인 완전그래프에서 사각형 개수는?", a: "5", e: "5개 중 4개를 선택하므로 5C4 = 5 입니다. (단순 정점 선택 기준)" },
+        { q: "정점 6개에서 4개의 정점을 선택하는 경우의 수는?", a: "15", e: "6C4 = 6C2 = 15 입니다." },
+        { q: "정점 5개에서 간선 3개를 선택하는 경우의 수는?", a: "120", e: "간선 후보 10개 중 3개를 선택하므로 10C3 = (10 * 9 * 8) / (3 * 2 * 1) = 120 입니다." },
+        { q: "정점 4개에서 모든 그래프 중 간선이 짝수 개인 그래프 개수는?", a: "32", e: "전체 그래프 64개의 절반인 32개입니다." },
+        { q: "정점 3개에서 연결그래프 개수는?", a: "4", e: "전체 8개 중 비연결(간선 0개 1개, 간선 1개 3개)을 뺀 4개입니다." },
+        { q: "정점 4개에서 트리 개수는?", a: "16", e: "카일리 공식 n^(n-2)에 의해 4^(4-2) = 4^2 = 16 입니다." },
+        { q: "정점 5개에서 트리 개수는?", a: "125", e: "5^(5-2) = 5^3 = 125 입니다." },
+        { q: "정점 6개에서 트리 개수는?", a: "1296", e: "6^(6-2) = 6^4 = 1296 입니다." },
+        { q: "정점 4개에서 한 정점의 차수가 3이 되도록 간선 선택 방법 수는?", a: "4", e: "특정 정점 하나가 나머지 3개와 모두 연결되는 경우이므로 정점 선택 수인 4가지입니다." },
+        { q: "정점 5개에서 특정 정점의 차수가 4가 되도록 하는 그래프 수는?", a: "1개", e: "그 정점이 모든 정점과 연결되는 유일한 경우입니다. (스타 그래프)" },
+        { q: "정점 4개에서 사이클을 만드는 간선 선택 방법 수는?", a: "3", e: "정점 4개로 만들 수 있는 4각형 사이클의 개수는 (4-1)! / 2 = 3 입니다." },
+        { q: "정점 6개에서 간선 5개로 트리를 만드는 경우의 수는?", a: "1296", e: "정점 6개에서 가능한 모든 트리의 개수와 같으므로 6^4 = 1296 입니다." },
+        { q: "정점 4개에서 서로 다른 순환(Cycle) 개수는?", a: "7", e: "삼각형(4C3=4개) + 사각형(3개) = 총 7개입니다." },
+        { q: "정점 5개에서 서로 다른 순환 개수는?", a: "37", e: "삼각형(10개) + 사각형(15개) + 오각형(12개) = 37 입니다." },
+        { q: "핵심 공식: 그래프의 모든 부분집합 중 트리의 비율은?", a: "n^(n-2) / 2^(nC2)", e: "전체 가능한 그래프 개수 분의 트리의 개수 공식입니다." }
+    ];
+
+    const quizGrid = document.getElementById('quizGrid');
+
+    problems.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'quiz-item';
+        div.innerHTML = `
+            <div class="quiz-question" onclick="toggleQuiz(this)">
+                <span><span class="badge-q">문제 ${index + 1}</span> ${item.q}</span>
+            </div>
+            <div class="quiz-answer">
+                <span class="label-ans">ANSWER</span>
+                <div style="font-size: 1.1rem; font-weight: 700; color: #1e40af;">${item.a}</div>
+                <div class="label-ans" style="color: #64748b;">EXPLANATION</div>
+                <div class="formula-box">${item.e}</div>
+            </div>
+        `;
+        quizGrid.appendChild(div);
+    });
+
+    function toggleQuiz(element) {
+        const item = element.parentElement;
+        const answer = item.querySelector('.quiz-answer');
+        const isActive = item.classList.contains('active');
+
+        if (isActive) {
+            item.classList.remove('active');
+            answer.style.display = 'none';
+        } else {
+            item.classList.add('active');
+            answer.style.display = 'block';
+        }
+    }
+</script>
+
+</body>
+</html>

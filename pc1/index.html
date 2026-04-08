@@ -1,0 +1,408 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);color:var(--color-text-primary)}
+.w{max-width:760px;margin:0 auto;padding:1.5rem 1rem}
+.hd{text-align:center;padding:1.5rem 0 1.8rem}
+.hd h1{font-size:22px;font-weight:500;margin-bottom:5px}
+.hd p{font-size:14px;color:var(--color-text-secondary)}
+.nav{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:2rem}
+.nb{padding:6px 14px;border:0.5px solid var(--color-border-secondary);border-radius:20px;background:transparent;cursor:pointer;font-size:13px;color:var(--color-text-secondary);font-family:var(--font-sans);transition:all .15s}
+.nb:hover{background:var(--color-background-secondary)}
+.nb.on{background:#EEEDFE;border-color:#7F77DD;color:#3C3489}
+.sec{display:none}.sec.on{display:block}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.25rem;margin-bottom:1rem}
+.st{font-size:16px;font-weight:500;margin-bottom:10px}
+.sb{font-size:14px;color:var(--color-text-secondary);line-height:1.65;margin-bottom:10px}
+.hl{border-left:3px solid #7F77DD;padding:9px 14px;background:#EEEDFE;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;margin:10px 0}
+.hl p{font-size:13px;color:#3C3489;line-height:1.6}
+.hl.tl{border-left-color:#1D9E75;background:#E1F5EE}.hl.tl p{color:#085041}
+.hl.cl{border-left-color:#D85A30;background:#FAECE7}.hl.cl p{color:#712B13}
+.hl.bl{border-left-color:#185FA5;background:#E6F1FB}.hl.bl p{color:#0C447C}
+.fml{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 16px;font-family:var(--font-mono);font-size:14px;text-align:center;margin:8px 0;color:var(--color-text-primary)}
+.g2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin:10px 0}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:10px 0}
+.cmp{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 12px}
+.cl2{font-size:11px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500;margin:2px}
+.bp{background:#EEEDFE;color:#3C3489}.bt{background:#E1F5EE;color:#085041}.bc{background:#FAECE7;color:#712B13}
+.bb{background:#E6F1FB;color:#0C447C}.bgy{background:#F1EFE8;color:#444441}.bamb{background:#FAEEDA;color:#633806}
+.pcat{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 9px;border-radius:10px;font-weight:500;margin-bottom:8px}
+.cat-combo{background:#EEEDFE;color:#3C3489}
+.cat-perm{background:#E6F1FB;color:#0C447C}
+.cat-tree{background:#E1F5EE;color:#085041}
+.cat-cycle{background:#FAECE7;color:#712B13}
+.cat-power{background:#FAEEDA;color:#633806}
+.pnum{font-size:12px;color:var(--color-text-tertiary);margin-bottom:5px}
+.pq{font-size:14px;font-weight:500;line-height:1.55;margin-bottom:14px}
+.reveal-btn{padding:7px 16px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;cursor:pointer;font-size:13px;font-family:var(--font-sans);color:var(--color-text-secondary);transition:all .15s;margin-right:8px}
+.reveal-btn:hover{background:var(--color-background-secondary)}
+.reveal-btn.shown{background:#EEEDFE;border-color:#7F77DD;color:#3C3489}
+.ans-area{margin-top:12px;display:none}
+.ans-area.show{display:block}
+.ans-num{font-size:28px;font-weight:500;color:#534AB7;margin-bottom:8px}
+.ans-exp{font-size:13px;color:var(--color-text-secondary);line-height:1.65}
+.ans-exp code{font-family:var(--font-mono);font-size:12px;background:var(--color-background-secondary);padding:1px 5px;border-radius:4px;color:var(--color-text-primary)}
+.prog-bar{height:4px;background:var(--color-border-tertiary);border-radius:2px;margin-bottom:1.5rem}
+.prog-fill{height:100%;background:#7F77DD;border-radius:2px;transition:width .3s}
+.pager{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+.pager-info{font-size:13px;color:var(--color-text-secondary)}
+.btn{padding:8px 18px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;cursor:pointer;font-size:13px;font-family:var(--font-sans);color:var(--color-text-primary);transition:all .15s}
+.btn:hover{background:var(--color-background-secondary)}.btn:active{transform:scale(.98)}
+.btnp{background:#EEEDFE;border-color:#7F77DD;color:#3C3489}.btnp:hover{background:#CECBF6}
+.btnd{opacity:.35;pointer-events:none}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.2rem}
+.filt{padding:5px 12px;border:0.5px solid var(--color-border-secondary);border-radius:20px;background:transparent;cursor:pointer;font-size:12px;color:var(--color-text-secondary);font-family:var(--font-sans);transition:all .15s}
+.filt:hover{background:var(--color-background-secondary)}
+.filt.on{background:#EEEDFE;border-color:#7F77DD;color:#3C3489}
+.formula-table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+.formula-table th{background:var(--color-background-secondary);font-weight:500;padding:8px 12px;text-align:left;border-bottom:0.5px solid var(--color-border-secondary);color:var(--color-text-primary)}
+.formula-table td{padding:9px 12px;border-bottom:0.5px solid var(--color-border-tertiary);vertical-align:top;color:var(--color-text-secondary)}
+.formula-table td:first-child{font-weight:500;color:var(--color-text-primary);white-space:nowrap}
+.formula-table td:nth-child(2){font-family:var(--font-mono);font-size:13px;color:#534AB7}
+.calc-out{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 16px;margin:10px 0}
+.calc-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;font-size:14px}
+.calc-row:last-child{margin-bottom:0}
+.calc-val{font-weight:500;color:#534AB7}
+.slider-row{display:flex;align-items:center;gap:12px;margin:8px 0}
+.slider-row label{font-size:13px;color:var(--color-text-secondary);min-width:56px}
+.sval{font-size:14px;font-weight:500;min-width:32px}
+.qi{padding:9px 13px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;font-size:13px;font-family:var(--font-sans);background:transparent;color:var(--color-text-primary);text-align:left;transition:all .15s;width:100%;margin-bottom:7px}
+.qi:hover:not(:disabled){background:var(--color-background-secondary)}
+.qi.ok{background:#E1F5EE;border-color:#1D9E75;color:#085041}
+.qi.ng{background:#FCEBEB;border-color:#E24B4A;color:#501313}
+.qfb{font-size:13px;padding:9px 13px;border-radius:var(--border-radius-md);margin-bottom:12px;line-height:1.55}
+.qfb.ok{background:#E1F5EE;color:#085041}.qfb.ng{background:#FCEBEB;color:#501313}
+.qn{font-size:13px;color:var(--color-text-secondary)}
+.sc{text-align:center;padding:2rem}
+.scn{font-size:48px;font-weight:500;color:#534AB7}
+.scl{font-size:14px;color:var(--color-text-secondary);margin-top:5px}
+.scm{font-size:15px;margin-top:14px}
+</style>
+
+<div class="w">
+  <div class="hd">
+    <h1>그래프 + 경우의 수 30문제</h1>
+    <p>중등정보올림피아드 이산수학 — 조합·순열·트리·사이클 완전 정복</p>
+  </div>
+
+  <nav class="nav">
+    <button class="nb on" onclick="show('formulas')">핵심 공식</button>
+    <button class="nb" onclick="show('problems')">문제 풀기</button>
+    <button class="nb" onclick="show('calc')">계산기</button>
+    <button class="nb" onclick="show('quiz')">랜덤 퀴즈</button>
+  </nav>
+
+  <!-- 핵심 공식 -->
+  <div id="s-formulas" class="sec on">
+    <div class="card">
+      <div class="st">반드시 암기할 공식 6가지</div>
+      <table class="formula-table">
+        <tr><th>공식 이름</th><th>식</th><th>설명</th></tr>
+        <tr><td>간선 최대 개수</td><td>ₙC₂ = n(n-1)/2</td><td>완전그래프 Kₙ의 간선 수</td></tr>
+        <tr><td>그래프 개수</td><td>2^(ₙC₂)</td><td>n개 정점에서 가능한 모든 그래프</td></tr>
+        <tr><td>간선 k개 선택</td><td>_(ₙC₂)Cₖ</td><td>가능한 간선 중 k개 선택</td></tr>
+        <tr><td>삼각형 개수</td><td>ₙC₃</td><td>완전그래프에서 삼각형 수</td></tr>
+        <tr><td>트리 개수</td><td>n^(n-2)</td><td>카일리 공식 (Cayley)</td></tr>
+        <tr><td>사이클 개수</td><td>(n-1)! / 2</td><td>n개 정점의 단순 순환 수</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="st">공식별 빠른 계산 예시</div>
+      <div class="g2">
+        <div class="cmp">
+          <div class="cl2">조합 — ₙCₖ</div>
+          <div class="fml">₅C₂ = 10</div>
+          <div class="fml">₆C₃ = 20</div>
+          <div style="font-size:12px;color:var(--color-text-secondary);margin-top:6px;">간선·삼각형·사각형 개수에 사용</div>
+        </div>
+        <div class="cmp">
+          <div class="cl2">카일리 공식</div>
+          <div class="fml">n=4: 4² = 16</div>
+          <div class="fml">n=5: 5³ = 125</div>
+          <div style="font-size:12px;color:var(--color-text-secondary);margin-top:6px;">n개 정점의 서로 다른 트리 수</div>
+        </div>
+        <div class="cmp">
+          <div class="cl2">사이클 개수</div>
+          <div class="fml">n=4: 3!/2 = 3</div>
+          <div class="fml">n=5: 4!/2 = 12</div>
+          <div style="font-size:12px;color:var(--color-text-secondary);margin-top:6px;">(n-1)! / 2</div>
+        </div>
+        <div class="cmp">
+          <div class="cl2">그래프 전체 개수</div>
+          <div class="fml">n=3: 2³ = 8</div>
+          <div class="fml">n=4: 2⁶ = 64</div>
+          <div style="font-size:12px;color:var(--color-text-secondary);margin-top:6px;">간선 후보마다 선택/미선택</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="st">시험에서 반드시 쓰는 문장</div>
+      <div style="display:flex;flex-direction:column;gap:7px;margin-top:4px;">
+        <div style="font-size:13px;color:var(--color-text-secondary);padding:7px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);">"정점 2개를 선택하면 간선이 된다."</div>
+        <div style="font-size:13px;color:var(--color-text-secondary);padding:7px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);">"각 간선은 선택/미선택 2가지 경우를 가진다."</div>
+        <div style="font-size:13px;color:var(--color-text-secondary);padding:7px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);">"경로는 순열로 계산한다."</div>
+        <div style="font-size:13px;color:var(--color-text-secondary);padding:7px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);">"삼각형은 정점 3개 선택으로 계산한다."</div>
+        <div style="font-size:13px;color:var(--color-text-secondary);padding:7px 12px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);">"트리의 개수는 카일리 공식 n^(n-2)를 이용한다."</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 문제 풀기 -->
+  <div id="s-problems" class="sec">
+    <div class="filter-row" id="filter-row">
+      <button class="filt on" onclick="setFilter('all',this)">전체 30문제</button>
+      <button class="filt" onclick="setFilter('조합',this)">조합</button>
+      <button class="filt" onclick="setFilter('순열',this)">순열/경로</button>
+      <button class="filt" onclick="setFilter('트리',this)">트리</button>
+      <button class="filt" onclick="setFilter('사이클',this)">사이클</button>
+      <button class="filt" onclick="setFilter('2의거듭제곱',this)">그래프 개수</button>
+    </div>
+    <div id="prog-wrap">
+      <div class="prog-bar"><div class="prog-fill" id="prog" style="width:0%"></div></div>
+    </div>
+    <div id="prob-card" class="card"></div>
+    <div class="pager">
+      <button class="btn" id="prev-btn" onclick="moveProblem(-1)">← 이전</button>
+      <span class="pager-info" id="pager-info"></span>
+      <button class="btn btnp" id="next-btn" onclick="moveProblem(1)">다음 →</button>
+    </div>
+  </div>
+
+  <!-- 계산기 -->
+  <div id="s-calc" class="sec">
+    <div class="card">
+      <div class="st">조합 ₙCₖ 계산기</div>
+      <div class="slider-row"><label>n (정점)</label><input type="range" min="2" max="12" value="5" step="1" id="cn" oninput="calcComb()"><span class="sval" id="cnv">5</span></div>
+      <div class="slider-row"><label>k (선택)</label><input type="range" min="1" max="10" value="2" step="1" id="ck" oninput="calcComb()"><span class="sval" id="ckv">2</span></div>
+      <div class="calc-out">
+        <div class="calc-row"><span>ₙCₖ (조합)</span><span class="calc-val" id="cv-comb">10</span></div>
+        <div class="calc-row"><span>완전그래프 간선 수 ₙC₂</span><span class="calc-val" id="cv-edge">10</span></div>
+        <div class="calc-row"><span>삼각형 수 ₙC₃</span><span class="calc-val" id="cv-tri">10</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="st">그래프/트리/사이클 종합 계산기</div>
+      <div class="slider-row"><label>정점 수 n</label><input type="range" min="2" max="10" value="4" step="1" id="gn" oninput="calcGraph()"><span class="sval" id="gnv">4</span></div>
+      <div class="calc-out">
+        <div class="calc-row"><span>완전그래프 간선 수 (ₙC₂)</span><span class="calc-val" id="gv-e">6</span></div>
+        <div class="calc-row"><span>가능한 그래프 수 (2^간선)</span><span class="calc-val" id="gv-g">64</span></div>
+        <div class="calc-row"><span>삼각형 수 (ₙC₃)</span><span class="calc-val" id="gv-t">4</span></div>
+        <div class="calc-row"><span>트리 수 (nⁿ⁻²)</span><span class="calc-val" id="gv-tr">16</span></div>
+        <div class="calc-row"><span>사이클 수 ((n-1)!/2)</span><span class="calc-val" id="gv-c">3</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="st">간선 k개 선택하는 경우의 수</div>
+      <div class="slider-row"><label>정점 수 n</label><input type="range" min="2" max="8" value="5" step="1" id="en" oninput="calcEdge()"><span class="sval" id="env">5</span></div>
+      <div class="slider-row"><label>간선 선택 k</label><input type="range" min="0" max="15" value="3" step="1" id="ek" oninput="calcEdge()"><span class="sval" id="ekv">3</span></div>
+      <div class="calc-out">
+        <div class="calc-row"><span>가능한 총 간선 수 (ₙC₂)</span><span class="calc-val" id="ev-max">10</span></div>
+        <div class="calc-row"><span>간선 k개 선택 (_C_k)</span><span class="calc-val" id="ev-sel">120</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 랜덤 퀴즈 -->
+  <div id="s-quiz" class="sec">
+    <div class="card" id="qbox"><div id="qarea"></div></div>
+  </div>
+</div>
+
+<script>
+function C(n,k){
+  if(k<0||k>n)return 0;
+  if(k===0||k===n)return 1;
+  k=Math.min(k,n-k);
+  let r=1;
+  for(let i=0;i<k;i++) r=r*(n-i)/(i+1);
+  return Math.round(r);
+}
+function fact(n){let r=1;for(let i=2;i<=n;i++)r*=i;return r;}
+
+const allProblems=[
+  {id:1,cat:'조합',q:'정점이 4개인 그래프에서 서로 다른 두 정점을 선택하는 경우의 수는?',ans:6,formula:'₄C₂ = 4×3/2 = 6',exp:'정점 2개를 선택하면 간선 후보가 됩니다.'},
+  {id:2,cat:'조합',q:'정점이 5개인 완전그래프의 간선 수는?',ans:10,formula:'₅C₂ = 5×4/2 = 10',exp:'완전그래프 Kₙ의 간선 수 = ₙC₂입니다.'},
+  {id:3,cat:'조합',q:'정점이 6개인 그래프에서 최대 간선 수는?',ans:15,formula:'₆C₂ = 6×5/2 = 15',exp:'최대 간선 = 완전그래프의 간선 수입니다.'},
+  {id:4,cat:'조합',q:'정점이 5개인 그래프에서 가능한 간선 중 2개만 선택하는 경우의 수는?',ans:45,formula:'₁₀C₂ = 10×9/2 = 45',exp:'가능한 간선 10개 중 2개 선택 = ₁₀C₂'},
+  {id:5,cat:'2의거듭제곱',q:'정점 4개에서 간선이 없는 그래프는 몇 개인가?',ans:1,formula:'간선 0개 선택 = 1',exp:'간선을 하나도 선택하지 않는 경우는 딱 1가지입니다.'},
+  {id:6,cat:'2의거듭제곱',q:'정점이 3개일 때 가능한 모든 그래프의 개수는?',ans:8,formula:'₃C₂=3, 2³ = 8',exp:'간선 후보 3개, 각각 선택/미선택 → 2³ = 8'},
+  {id:7,cat:'2의거듭제곱',q:'정점이 4개일 때 가능한 그래프 개수는?',ans:64,formula:'₄C₂=6, 2⁶ = 64',exp:'간선 후보 6개 → 2⁶ = 64'},
+  {id:8,cat:'조합',q:'정점이 4개인 그래프에서 간선이 정확히 3개인 경우의 수는?',ans:20,formula:'₆C₃ = 20',exp:'6개 간선 후보 중 3개 선택 = ₆C₃ = 20'},
+  {id:9,cat:'조합',q:'정점이 5개인 그래프에서 간선이 정확히 4개인 경우의 수는?',ans:210,formula:'₁₀C₄ = 210',exp:'10개 간선 후보 중 4개 선택 = ₁₀C₄ = 210'},
+  {id:10,cat:'순열',q:'정점이 4개인 그래프에서 서로 다른 경로 A→B→C의 개수는? (A, C 고정)',ans:2,formula:'A, C 제외 정점 = 2개',exp:'중간 정점 B는 A, C를 제외한 2개 중 선택 → 2가지'},
+  {id:11,cat:'순열',q:'정점이 5개일 때 서로 다른 길이 2 경로(A→B→C)의 개수는?',ans:60,formula:'5 × 4 × 3 = 60',exp:'시작점 5 × 중간점 4 × 끝점 3 = 60'},
+  {id:12,cat:'순열',q:'정점 4개에서 길이 3 단순경로의 개수는?',ans:24,formula:'₄P₄ = 4! = 24',exp:'정점 4개를 순서대로 모두 나열 = 4! = 24'},
+  {id:13,cat:'조합',q:'정점이 4개인 완전그래프에서 삼각형 개수는?',ans:4,formula:'₄C₃ = 4',exp:'정점 3개를 선택하면 삼각형 1개 → ₄C₃ = 4'},
+  {id:14,cat:'조합',q:'정점이 5개인 완전그래프에서 삼각형 개수는?',ans:10,formula:'₅C₃ = 10',exp:'₅C₃ = 5×4×3/6 = 10'},
+  {id:15,cat:'조합',q:'정점이 6개인 완전그래프에서 삼각형 개수는?',ans:20,formula:'₆C₃ = 20',exp:'₆C₃ = 6×5×4/6 = 20'},
+  {id:16,cat:'조합',q:'정점이 5개인 완전그래프에서 사각형(4-cycle) 개수는?',ans:5,formula:'₅C₄ = 5',exp:'정점 4개 선택 → 사각형 1개 → ₅C₄ = 5'},
+  {id:17,cat:'조합',q:'정점 6개에서 4개의 정점을 선택하는 경우의 수는?',ans:15,formula:'₆C₄ = 15',exp:'₆C₄ = ₆C₂ = 15'},
+  {id:18,cat:'조합',q:'정점 5개에서 간선 3개를 선택하는 경우의 수는?',ans:120,formula:'₁₀C₃ = 120',exp:'간선 후보 10개 중 3개 선택 = ₁₀C₃ = 120'},
+  {id:19,cat:'2의거듭제곱',q:'정점 4개에서 모든 그래프 중 간선이 짝수 개인 그래프 개수는?',ans:32,formula:'64 / 2 = 32',exp:'전체 64개에서 짝수/홀수 간선 그래프 수는 동일 → 32'},
+  {id:20,cat:'2의거듭제곱',q:'정점 3개에서 연결그래프 개수는?',ans:4,formula:'전체 8 - 비연결 4 = 4',exp:'비연결: 간선 0개(1), 간선 1개(3) = 4가지 → 연결 = 8-4 = 4'},
+  {id:21,cat:'트리',q:'정점 4개에서 서로 다른 트리 개수는? (카일리 공식)',ans:16,formula:'4^(4-2) = 4² = 16',exp:'카일리 공식: n^(n-2) = 4² = 16'},
+  {id:22,cat:'트리',q:'정점 5개에서 서로 다른 트리 개수는?',ans:125,formula:'5^(5-2) = 5³ = 125',exp:'카일리 공식: 5³ = 125'},
+  {id:23,cat:'트리',q:'정점 6개에서 서로 다른 트리 개수는?',ans:1296,formula:'6^(6-2) = 6⁴ = 1296',exp:'카일리 공식: 6⁴ = 1296'},
+  {id:24,cat:'조합',q:'정점 4개에서 한 특정 정점의 차수가 3이 되도록 간선을 선택하는 방법 수는?',ans:1,formula:'다른 3개 정점 모두 연결 → 1가지',exp:'나머지 3개 정점 모두와 연결하는 경우 딱 1가지'},
+  {id:25,cat:'조합',q:'정점 5개에서 특정 정점의 차수가 4가 되도록 하는 그래프 수는?',ans:1,formula:'나머지 4개 모두 연결 → 1가지',exp:'다른 4개 정점 모두와 연결 = 1가지'},
+  {id:26,cat:'사이클',q:'정점 4개에서 사이클(삼각형 포함)을 만드는 간선 집합 수는?',ans:3,formula:'₄C₃ 삼각형 = 4, 사각형 = 1 → 총 5? 단순순환은 3',exp:'길이 3 단순 순환: ₄C₃=4 아닌 (4-1)!/2 = 3'},
+  {id:27,cat:'조합',q:'정점 5개에서 삼각형 하나를 선택하는 경우의 수는?',ans:10,formula:'₅C₃ = 10',exp:'정점 3개 선택 = 삼각형 1개'},
+  {id:28,cat:'트리',q:'정점 6개에서 간선 5개로 트리를 만드는 경우의 수는?',ans:1296,formula:'6^(6-2) = 6⁴ = 1296',exp:'카일리 공식으로 n=6인 트리 수 = 6⁴ = 1296'},
+  {id:29,cat:'사이클',q:'정점 4개에서 서로 다른 순환(Cycle) 개수는?',ans:3,formula:'(4-1)!/2 = 6/2 = 3',exp:'n개 정점 순환 수 = (n-1)!/2 = 3!/2 = 3'},
+  {id:30,cat:'사이클',q:'정점 5개에서 서로 다른 순환(Cycle) 개수는?',ans:12,formula:'(5-1)!/2 = 24/2 = 12',exp:'(5-1)!/2 = 4!/2 = 24/2 = 12'},
+];
+
+const catColors={
+  '조합':'cat-combo',
+  '순열':'cat-perm',
+  '트리':'cat-tree',
+  '사이클':'cat-cycle',
+  '2의거듭제곱':'cat-power'
+};
+const catLabel={
+  '조합':'조합',
+  '순열':'순열/경로',
+  '트리':'트리(카일리)',
+  '사이클':'사이클',
+  '2의거듭제곱':'그래프 개수'
+};
+
+let curFilter='all';
+let filteredProbs=allProblems.slice();
+let probIdx=0;
+let revealed=new Set();
+
+function setFilter(cat,btn){
+  curFilter=cat;
+  document.querySelectorAll('#filter-row .filt').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  filteredProbs=cat==='all'?allProblems.slice():allProblems.filter(p=>p.cat===cat);
+  probIdx=0;
+  revealed=new Set();
+  renderProb();
+}
+
+function renderProb(){
+  const p=filteredProbs[probIdx];
+  if(!p){document.getElementById('prob-card').innerHTML='<div style="font-size:14px;color:var(--color-text-secondary);">해당 카테고리에 문제가 없습니다.</div>';return;}
+  const pct=Math.round((probIdx)/(filteredProbs.length)*100);
+  document.getElementById('prog').style.width=pct+'%';
+  document.getElementById('pager-info').textContent=(probIdx+1)+' / '+filteredProbs.length+'문제';
+  const isRev=revealed.has(p.id);
+  document.getElementById('prob-card').innerHTML=`
+    <div class="pnum">${p.id}번</div>
+    <span class="pcat ${catColors[p.cat]||'cat-combo'}">${catLabel[p.cat]||p.cat}</span>
+    <div class="pq">${p.q}</div>
+    <button class="reveal-btn ${isRev?'shown':''}" id="rb" onclick="toggleReveal(${p.id})">${isRev?'정답 숨기기':'정답 보기'}</button>
+    <div class="ans-area ${isRev?'show':''}" id="aa">
+      <div class="ans-num">${p.ans}</div>
+      <div class="fml">${p.formula}</div>
+      <div class="ans-exp">${p.exp}</div>
+    </div>
+  `;
+  document.getElementById('prev-btn').classList.toggle('btnd',probIdx===0);
+  document.getElementById('next-btn').classList.toggle('btnd',probIdx===filteredProbs.length-1);
+}
+
+function toggleReveal(id){
+  if(revealed.has(id))revealed.delete(id);
+  else revealed.add(id);
+  renderProb();
+}
+
+function moveProblem(d){
+  probIdx=Math.max(0,Math.min(filteredProbs.length-1,probIdx+d));
+  renderProb();
+}
+
+function calcComb(){
+  const n=parseInt(document.getElementById('cn').value);
+  const k=parseInt(document.getElementById('ck').value);
+  document.getElementById('cnv').textContent=n;
+  document.getElementById('ckv').textContent=k;
+  document.getElementById('cv-comb').textContent=C(n,k);
+  document.getElementById('cv-edge').textContent=C(n,2);
+  document.getElementById('cv-tri').textContent=C(n,3);
+}
+
+function calcGraph(){
+  const n=parseInt(document.getElementById('gn').value);
+  document.getElementById('gnv').textContent=n;
+  const e=C(n,2);
+  document.getElementById('gv-e').textContent=e;
+  document.getElementById('gv-g').textContent=Math.pow(2,e);
+  document.getElementById('gv-t').textContent=C(n,3);
+  document.getElementById('gv-tr').textContent=n>=2?Math.round(Math.pow(n,n-2)):1;
+  document.getElementById('gv-c').textContent=n>=3?Math.round(fact(n-1)/2):0;
+}
+
+function calcEdge(){
+  const n=parseInt(document.getElementById('en').value);
+  const k=parseInt(document.getElementById('ek').value);
+  document.getElementById('env').textContent=n;
+  document.getElementById('ekv').textContent=k;
+  const maxE=C(n,2);
+  document.getElementById('ev-max').textContent=maxE;
+  document.getElementById('ev-sel').textContent=k<=maxE?C(maxE,k):'불가';
+}
+
+const quizPool=allProblems.map(p=>({
+  q:p.q,
+  ans:p.ans,
+  opts:genOpts(p.ans),
+  ex:`${p.formula} — ${p.exp}`
+}));
+
+function genOpts(ans){
+  const s=new Set([ans]);
+  const candidates=[ans-2,ans-1,ans+1,ans+2,Math.round(ans*1.5),Math.round(ans*2),Math.round(ans/2)].filter(x=>x>0&&x!==ans);
+  while(s.size<4&&candidates.length>0){
+    const i=Math.floor(Math.random()*candidates.length);
+    s.add(candidates.splice(i,1)[0]);
+  }
+  return shuffle([...s]);
+}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+let qcur=0,qscore=0,qPool=[];
+function startQuiz(){
+  qPool=shuffle(quizPool.slice()).slice(0,10);
+  qPool.forEach(q=>{q.opts=genOpts(q.ans);});
+  qcur=0;qscore=0;rq();
+}
+function rq(){
+  const qa=document.getElementById('qarea');
+  if(qcur>=qPool.length){
+    const p=Math.round(qscore/qPool.length*100);
+    const m=p>=90?'완벽합니다!':p>=70?'잘 풀었습니다!':p>=50?'조금 더 연습해 보세요.':'공식부터 다시 확인하세요.';
+    qa.innerHTML=`<div class="sc"><div class="scn">${qscore}/${qPool.length}</div><div class="scl">정답률 ${p}%</div><div class="scm">${m}</div><button class="btn btnp" style="margin-top:18px;" onclick="startQuiz()">다시 풀기 (새 10문제)</button></div>`;
+    return;
+  }
+  const q=qPool[qcur];
+  const opts=q.opts.map((o,i)=>`<button class="qi" id="qi${i}" onclick="qa(${i},${q.ans},'${q.ex.replace(/'/g,"&#39;")}')">${o}</button>`).join('');
+  qa.innerHTML=`<div class="qn">문제 ${qcur+1} / ${qPool.length}</div><div style="font-size:15px;font-weight:500;margin:10px 0 14px;line-height:1.5;">${q.q}</div><div>${opts}</div><div id="qfb"></div><div style="display:flex;justify-content:flex-end;margin-top:8px;"><button class="btn btnp" id="nb" style="display:none;" onclick="qcur++;rq()">다음 →</button></div>`;
+}
+function qa(i,ans,ex){
+  const q=qPool[qcur];
+  document.querySelectorAll('.qi').forEach(b=>b.disabled=true);
+  const sel=q.opts[i];
+  if(sel===ans){qscore++;document.getElementById('qi'+i).classList.add('ok');document.getElementById('qfb').innerHTML=`<div class="qfb ok">정답입니다! ${ex}</div>`;}
+  else{document.getElementById('qi'+i).classList.add('ng');const ai=q.opts.indexOf(ans);if(ai>=0)document.getElementById('qi'+ai).classList.add('ok');document.getElementById('qfb').innerHTML=`<div class="qfb ng">틀렸습니다. ${ex}</div>`;}
+  document.getElementById('nb').style.display='block';
+}
+
+function show(n){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('on'));
+  document.getElementById('s-'+n).classList.add('on');
+  const ns=['formulas','problems','calc','quiz'];
+  document.querySelectorAll('.nb').forEach((b,i)=>b.classList.toggle('on',ns[i]===n));
+  if(n==='problems') renderProb();
+  if(n==='quiz') startQuiz();
+}
+
+renderProb();
+calcComb();
+calcGraph();
+calcEdge();
+</script>
