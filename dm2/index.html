@@ -1,0 +1,340 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.root{font-family:var(--font-sans);padding:2rem 0}
+
+/* Hero */
+.hero{margin-bottom:1.75rem}
+.hero-ey{font-size:11px;font-weight:500;color:var(--color-text-tertiary);letter-spacing:.06em;margin-bottom:6px}
+.hero-title{font-size:22px;font-weight:500;margin-bottom:6px}
+.hero-desc{font-size:13px;color:var(--color-text-secondary);line-height:1.7;margin-bottom:1rem;max-width:560px}
+.tag{font-size:11px;padding:3px 10px;border-radius:9px;border:0.5px solid;font-weight:500;display:inline-block}
+.t1{background:#E6F1FB;color:#0C447C;border-color:#85B7EB}
+.t2{background:#EAF3DE;color:#27500A;border-color:#97C459}
+.t3{background:#FAEEDA;color:#633806;border-color:#EF9F27}
+.t4{background:#EEEDFE;color:#26215C;border-color:#AFA9EC}
+
+/* Stats */
+.stat-row{display:flex;gap:10px;margin-bottom:1.25rem;flex-wrap:wrap}
+.sc{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:.75rem 1.25rem;flex:1;min-width:72px}
+.sc-l{font-size:11px;color:var(--color-text-secondary);margin-bottom:3px}
+.sc-v{font-size:22px;font-weight:500}
+
+/* Progress dots */
+.prog-wrap{margin-bottom:1.5rem}
+.prog-lbl{font-size:12px;color:var(--color-text-secondary);margin-bottom:7px}
+.prog-section{margin-bottom:8px}
+.ps-name{font-size:11px;color:var(--color-text-tertiary);margin-bottom:4px}
+.dots{display:flex;gap:4px;flex-wrap:wrap}
+.dot{width:24px;height:24px;border-radius:50%;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:var(--color-text-tertiary)}
+.dot:hover{border-color:var(--color-border-primary)}
+.dot.ok{background:#1D9E75;border-color:#0F6E56;color:#fff}
+.dot.ng{background:#E24B4A;border-color:#A32D2D;color:#fff}
+.dot.cur{border:1.5px solid var(--color-text-primary);background:var(--color-background-primary);color:var(--color-text-primary)}
+
+/* Category tabs */
+.cat-tabs{display:flex;gap:4px;margin-bottom:1.25rem;flex-wrap:wrap}
+.ct{padding:6px 14px;font-size:13px;font-weight:500;border:0.5px solid var(--color-border-secondary);border-radius:9px;background:transparent;cursor:pointer;color:var(--color-text-secondary);transition:all .15s}
+.ct:hover{background:var(--color-background-secondary)}
+.ct.on{background:var(--color-text-primary);color:var(--color-background-primary);border-color:transparent}
+
+/* Q Card */
+.q-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.5rem;margin-bottom:1rem}
+.qh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
+.qh-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.q-num{font-size:15px;font-weight:500}
+.q-cat{font-size:11px;padding:3px 9px;border-radius:9px;border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary)}
+.q-nav-btns{display:flex;gap:6px}
+.q-stem{font-size:13px;line-height:1.8;color:var(--color-text-primary);margin-bottom:1.25rem;white-space:pre-wrap}
+.ans-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:5px}
+.ans-input{width:100%;padding:8px 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);font-size:13px;font-family:var(--font-sans);transition:border-color .15s}
+.ans-input:focus{outline:none;border-color:var(--color-border-primary);background:var(--color-background-primary)}
+.ans-input.ok{border-color:#1D9E75;background:#EAF3DE;color:#173404}
+.ans-input.ng{border-color:#E24B4A;background:#FCEBEB;color:#501313}
+.btn-row{display:flex;gap:7px;margin-top:.75rem;flex-wrap:wrap}
+button.btn{font-size:13px;padding:7px 15px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);cursor:pointer;transition:all .15s}
+button.btn:hover{background:var(--color-background-secondary)}
+button.btn:active{transform:scale(.98)}
+button.btn.pri{background:var(--color-text-primary);color:var(--color-background-primary);border-color:transparent}
+button.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Feedback */
+.fb{display:none;border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-top:1rem;border:0.5px solid}
+.fb.on{display:block}
+.fb.ok{background:#EAF3DE;border-color:#3B6D11}
+.fb.ng{background:#FCEBEB;border-color:#E24B4A}
+.fb-title{font-size:13px;font-weight:500;margin-bottom:8px}
+.fb-title.ok{color:#173404}
+.fb-title.ng{color:#501313}
+.fb-body{font-size:13px;line-height:1.8;color:var(--color-text-primary)}
+.ans-box{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 14px;margin-top:8px}
+.ab-l{font-size:11px;color:var(--color-text-secondary);margin-bottom:3px}
+.ab-v{font-size:16px;font-weight:500;font-family:var(--font-mono)}
+
+/* Nav bottom */
+.nav-bot{display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem}
+
+/* Hint */
+.hint-box{display:none;background:#EEEDFE;border:0.5px solid #534AB7;border-radius:var(--border-radius-md);padding:10px 14px;font-size:12px;color:#26215C;line-height:1.7;margin-top:.75rem}
+.hint-box.on{display:block}
+
+/* Result */
+.result-panel{display:none;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:2rem;text-align:center;margin-top:1rem}
+.result-panel.on{display:block}
+.rp-score{font-size:36px;font-weight:500;margin-bottom:8px}
+.rp-msg{font-size:14px;color:var(--color-text-secondary);margin-bottom:1.5rem}
+.rp-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:1.5rem}
+.rp-item{padding:8px 4px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);text-align:center}
+.rpi-n{font-size:10px;color:var(--color-text-secondary);margin-bottom:3px}
+.rpi-r{font-size:13px;font-weight:500}
+.sep{height:.5px;background:var(--color-border-tertiary);margin:1.5rem 0}
+</style>
+
+<div class="root">
+<h2 style="position:absolute;opacity:0;pointer-events:none">이산수학 30문제 대화형 학습</h2>
+
+<div class="hero">
+  <div class="hero-ey">중등 이산수학 연습</div>
+  <div class="hero-title">이산수학 30문제 풀이 홈페이지</div>
+  <div class="hero-desc">경우의 수 · 그래프 · 논리퍼즐 · 진수변환 4가지 영역의 문제를 직접 풀고 단계별 해설을 확인하세요.</div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <span class="tag t1">경우의 수 (1~8)</span>
+    <span class="tag t2">그래프 (9~15)</span>
+    <span class="tag t3">논리퍼즐 (16~22)</span>
+    <span class="tag t4">진수변환 (23~30)</span>
+  </div>
+</div>
+
+<div class="stat-row">
+  <div class="sc"><div class="sc-l">전체</div><div class="sc-v">30</div></div>
+  <div class="sc"><div class="sc-l">정답</div><div class="sc-v" id="s-ok" style="color:#1D9E75">0</div></div>
+  <div class="sc"><div class="sc-l">오답</div><div class="sc-v" id="s-ng" style="color:#E24B4A">0</div></div>
+  <div class="sc"><div class="sc-l">남은 문제</div><div class="sc-v" id="s-left">30</div></div>
+</div>
+
+<div class="prog-wrap">
+  <div class="prog-lbl">진도 현황 (클릭해서 이동):</div>
+  <div class="prog-section"><div class="ps-name">경우의 수 (1–8)</div><div class="dots" id="dots-1"></div></div>
+  <div class="prog-section"><div class="ps-name">그래프 (9–15)</div><div class="dots" id="dots-2"></div></div>
+  <div class="prog-section"><div class="ps-name">논리퍼즐 (16–22)</div><div class="dots" id="dots-3"></div></div>
+  <div class="prog-section"><div class="ps-name">진수변환 (23–30)</div><div class="dots" id="dots-4"></div></div>
+</div>
+
+<div class="cat-tabs">
+  <button class="ct on" onclick="filterCat(0,this)">전체</button>
+  <button class="ct" onclick="filterCat(1,this)">경우의 수</button>
+  <button class="ct" onclick="filterCat(2,this)">그래프</button>
+  <button class="ct" onclick="filterCat(3,this)">논리퍼즐</button>
+  <button class="ct" onclick="filterCat(4,this)">진수변환</button>
+</div>
+
+<div id="q-area"></div>
+<div class="result-panel" id="result-panel"></div>
+</div>
+
+<script>
+const CATS={1:'경우의 수',2:'그래프',3:'논리퍼즐',4:'진수변환'};
+const CAT_CLR={1:'t1',2:'t2',3:'t3',4:'t4'};
+
+const QS=[
+  {n:1,cat:1,stem:'5명의 학생 중에서 2명을 뽑는 방법의 수를 구하시오.',ans:'10',hint:'순서가 없는 선택 → 조합 공식: ₅C₂',explanation:'₅C₂ = (5×4)/2 = 10',steps:['순서 없이 뽑기 → 조합','₅C₂ = 5×4 ÷ 2 = 10']},
+  {n:2,cat:1,stem:'1~6 중 서로 다른 3개의 수를 뽑아 순서 있게 나열하는 방법의 수는?',ans:'120',hint:'순서가 있는 선택 → 순열 공식: ₆P₃',explanation:'₆P₃ = 6×5×4 = 120',steps:['순서 있게 나열 → 순열','₆P₃ = 6×5×4 = 120']},
+  {n:3,cat:1,stem:'동전을 4번 던질 때 앞면이 정확히 2번 나오는 경우의 수를 구하시오.',ans:'6',hint:'4번 중 앞면이 나올 2자리를 선택하는 조합입니다.',explanation:'₄C₂ = 6',steps:['4번 중 앞면 위치 2개 선택','₄C₂ = (4×3)/2 = 6']},
+  {n:4,cat:1,stem:'숫자 1, 2, 3, 4로 만들 수 있는 2자리 수의 개수는? (중복 허용)',ans:'16',hint:'각 자리마다 4가지 선택이 독립적으로 가능합니다.',explanation:'각 자리 4가지 선택 → 4×4 = 16',steps:['십의 자리: 4가지','일의 자리: 4가지(중복허용)','4×4 = 16']},
+  {n:5,cat:1,stem:'숫자 1, 2, 3, 4로 만들 수 있는 2자리 수의 개수는? (중복 금지)',ans:'12',hint:'첫 번째 자리와 두 번째 자리에서 같은 수를 쓸 수 없습니다.',explanation:'4×3 = 12',steps:['십의 자리: 4가지','일의 자리: 이미 쓴 수 제외 3가지','4×3 = 12']},
+  {n:6,cat:1,stem:'6명 중 3명을 선택하는 경우의 수를 구하시오.',ans:'20',hint:'순서 없이 뽑기 → 조합',explanation:'₆C₃ = (6×5×4)/(3×2×1) = 20',steps:['₆C₃ = 6×5×4 ÷ (3×2×1)','= 120 ÷ 6 = 20']},
+  {n:7,cat:1,stem:'4개의 원소를 가진 집합의 부분집합 개수는?',ans:'16',hint:'각 원소를 넣거나 안 넣거나 2가지 → 2⁴',explanation:'2⁴ = 16',steps:['각 원소: 포함/미포함 2가지','4개 원소 → 2⁴ = 16']},
+  {n:8,cat:1,stem:'5개의 원소 중 짝수 개(0, 2, 4개)를 선택하는 경우의 수는?',ans:'16',hint:'전체 부분집합의 절반이 짝수 개 원소를 가집니다.',explanation:'전체 2⁵=32, 짝수/홀수 대칭 → 32÷2 = 16',steps:['전체 부분집합: 2⁵ = 32','짝수 개 = 홀수 개 (대칭)','32 ÷ 2 = 16']},
+  {n:9,cat:2,stem:'정점이 4개인 완전 그래프의 간선 개수는?',ans:'6',hint:'모든 두 정점 사이에 간선 → ₄C₂',explanation:'₄C₂ = 6',steps:['완전그래프: 모든 쌍에 간선','₄C₂ = (4×3)/2 = 6']},
+  {n:10,cat:2,stem:'정점이 5개인 트리의 간선 개수는?',ans:'4',hint:'트리는 항상 간선 수 = 정점 수 - 1',explanation:'트리는 n-1개의 간선 → 5-1 = 4',steps:['트리 성질: 간선 수 = n-1','5-1 = 4']},
+  {n:11,cat:2,stem:'A→B, B→C, C→D일 때 A에서 D까지 가는 경로 수는?',ans:'1',hint:'방향 그래프에서 순서대로 따라가면 됩니다.',explanation:'A→B→C→D 단 하나의 경로',steps:['A→B→C→D만 존재','경로 수 = 1']},
+  {n:12,cat:2,stem:'정점 3개(A, B, C)의 완전 그래프에서 A에서 C로 가는 서로 다른 경로 수는?',ans:'2',hint:'직접 가는 경로와 B를 거치는 경로를 모두 세어보세요.',explanation:'A→C (직접), A→B→C (B경유)',steps:['경로 1: A→C (직접)','경로 2: A→B→C','총 2가지']},
+  {n:13,cat:2,stem:'그래프에서 간선이 하나도 없을 때 컴포넌트(연결 요소) 개수는? (정점 n개일 때)',ans:'n',hint:'간선이 없으면 각 정점이 모두 독립적으로 분리됩니다.',explanation:'간선 없음 → 각 정점이 독립 컴포넌트 → n개',steps:['간선 없음 → 모두 분리','n개 정점 = n개 컴포넌트']},
+  {n:14,cat:2,stem:'정점 6개, 간선 5개이고 연결된 그래프 → 이것은 무엇인가?',ans:'트리',hint:'연결 그래프에서 n개 정점, n-1개 간선이면?',explanation:'n개 정점, n-1개 간선, 연결 → 트리의 정의',steps:['n=6, 간선=5=n-1','연결 + n-1 간선 = 트리']},
+  {n:15,cat:2,stem:'정점이 4개일 때 가능한 간선의 최대 개수는?',ans:'6',hint:'완전 그래프가 간선이 가장 많습니다.',explanation:'완전그래프 = ₄C₂ = 6',steps:['최대 = 완전 그래프','₄C₂ = 6']},
+  {n:16,cat:3,stem:'A가 "나는 거짓말쟁이"라고 말한다.\n이 말은 참인가, 거짓인가, 아니면 모순인가?',ans:'모순',hint:'참이면 A는 거짓말쟁이니까 그 말은 거짓이 되고, 거짓이면 A는 참말쟁이니까 그 말은 참이 됩니다.',explanation:'참 → 거짓말쟁이 → 말이 거짓 / 거짓 → 참말쟁이 → 말이 참 → 모순',steps:['만약 참이면: A는 거짓말쟁이 → 이 말 거짓 → 모순','만약 거짓이면: A는 참말쟁이 → 이 말 참 → 모순','결론: 모순 (불가능)']},
+  {n:17,cat:3,stem:'A: "B는 거짓말쟁이"\nB: "A는 참말쟁이"\n두 사람 중 거짓말쟁이는 누구인가?',ans:'없음',hint:'두 발언을 동시에 참이라고 가정해보세요.',explanation:'A참+B참이면: A말 참(B거짓)인데 B가 참 → 모순? 아니다. A참→B거짓이면 B가 "A참말" 말은 거짓→ A거짓? 모순.\n결론: 둘 다 참 또는 둘 다 거짓 가능',steps:['A=참,B=거짓: A→B거짓(참) ✓, B→A참(거짓이므로 A거짓) ✓','A=참,B=거짓: 모순 없음','정답: A=참, B=거짓 or A=거짓, B=참 모두 가능 → 없음']},
+  {n:18,cat:3,stem:'A, B 중 한 명만 참말쟁이일 때\nA: "B는 거짓말쟁이"\n\nA는 참말쟁이인가, 거짓말쟁이인가?',ans:'참',hint:'A의 말이 참이면 B가 거짓 → 한 명만 참 조건에 부합합니다.',explanation:'A참 → B거짓 → 한 명만 참 조건 만족',steps:['A가 참이면: B는 거짓말쟁이','→ 한 명만 참 조건 ✓','A는 참말쟁이']},
+  {n:19,cat:3,stem:'세 명 중 두 명만 참말쟁이\nA: "B는 참말쟁이"\nB: "C는 참말쟁이"\nC: "A는 거짓말쟁이"\n\n누가 참말쟁이인가?',ans:'A, B',hint:'C가 거짓말쟁이라고 가정하고 모순이 없는지 확인해보세요.',explanation:'C거짓 → "A는 거짓" 거짓 → A참. A참 → "B참" 참 → B참. B참 → "C참" 참 → C참? 모순.\nC거짓으로 가정하면: A참, B참, C거짓 → 두 명 참 ✓',steps:['C=거짓이라 가정','C의 말 "A거짓" → 거짓 → A는 참','A참 → "B참" → B는 참','B참 → "C참" → C가 참? 그런데 C=거짓으로 가정','단, 정수 2명 조건: A참,B참,C거짓 ✓']},
+  {n:20,cat:3,stem:'A, B, C가 서로 다른 수를 가진다고 할 때\nA=1, B=2, C=3이 가능한가?',ans:'가능',hint:'세 값이 서로 다른지만 확인합니다.',explanation:'1, 2, 3은 서로 다른 값 → 조건 만족',steps:['A=1, B=2, C=3','모두 서로 다른 값','조건 만족 → 가능']},
+  {n:21,cat:3,stem:'A+B=5, B+C=7, A+C=6일 때 A의 값은?',ans:'2',hint:'세 식을 모두 더해서 2(A+B+C)를 구하면 됩니다.',explanation:'세 식 합: 2(A+B+C)=18 → A+B+C=9\nA = 9-(B+C) = 9-7 = 2',steps:['세 식 더하기: 2(A+B+C)=18','A+B+C = 9','A = 9 - (B+C) = 9 - 7 = 2']},
+  {n:22,cat:3,stem:'어떤 수 n이 짝수이고 3의 배수일 때 n은 무엇의 배수인가?',ans:'6의 배수',hint:'짝수 = 2의 배수, 3의 배수이면서 공통이면?',explanation:'2의 배수 AND 3의 배수 → lcm(2,3) = 6의 배수',steps:['짝수 = 2의 배수','3의 배수','둘 다 → lcm(2,3) = 6의 배수']},
+  {n:23,cat:4,stem:'(1011)₂를 10진수로 변환하시오.',ans:'11',hint:'각 자리의 값: 8, 4, 2, 1에 비트를 곱해서 더합니다.',explanation:'1×8 + 0×4 + 1×2 + 1×1 = 8+2+1 = 11',steps:['1×2³ + 0×2² + 1×2¹ + 1×2⁰','= 8 + 0 + 2 + 1 = 11']},
+  {n:24,cat:4,stem:'(11101)₂를 10진수로 변환하시오.',ans:'29',hint:'각 자리: 16, 8, 4, 2, 1',explanation:'16+8+4+0+1 = 29',steps:['1×16 + 1×8 + 1×4 + 0×2 + 1×1','= 16+8+4+0+1 = 29']},
+  {n:25,cat:4,stem:'29를 2진수로 변환하시오.',ans:'11101',hint:'29를 2로 계속 나누면서 나머지를 아래에서 위로 읽습니다.',explanation:'29=16+8+4+1 → 1×2⁴+1×2³+1×2²+0×2¹+1×2⁰ = 11101',steps:['29÷2=14...1','14÷2=7...0','7÷2=3...1','3÷2=1...1','1÷2=0...1','아래→위로 읽기: 11101']},
+  {n:26,cat:4,stem:'(132)₄를 10진수로 변환하시오.',ans:'30',hint:'4진수: 각 자리는 4⁰, 4¹, 4²의 자리값을 가집니다.',explanation:'1×16 + 3×4 + 2×1 = 16+12+2 = 30',steps:['1×4² + 3×4¹ + 2×4⁰','= 16 + 12 + 2 = 30']},
+  {n:27,cat:4,stem:'(243)₅를 10진수로 변환하시오.',ans:'73',hint:'5진수: 자리값은 25, 5, 1',explanation:'2×25 + 4×5 + 3×1 = 50+20+3 = 73',steps:['2×5² + 4×5¹ + 3×5⁰','= 50 + 20 + 3 = 73']},
+  {n:28,cat:4,stem:'(11101101)₂를 16진수로 변환하시오.',ans:'ED',hint:'2진수 4자리씩 묶어서 16진수 1자리로 변환합니다.',explanation:'1110 → E(14), 1101 → D(13) → ED',steps:['4자리씩 묶기: 1110 | 1101','1110 = 14 → E','1101 = 13 → D','결과: ED']},
+  {n:29,cat:4,stem:'(57)₈을 2진수로 변환하시오.',ans:'101111',hint:'8진수 각 자리를 2진수 3자리로 변환합니다.',explanation:'5→101, 7→111 → 101111',steps:['5(₈) → 101(₂)','7(₈) → 111(₂)','합치기: 101111']},
+  {n:30,cat:4,stem:'(2F)₁₆을 10진수로 변환하시오.',ans:'47',hint:'F=15. 16진수 자리값: 16, 1',explanation:'2×16 + 15×1 = 32+15 = 47',steps:['F = 15','2×16¹ + F×16⁰','= 32 + 15 = 47']},
+];
+
+const state={res:{},hints:{}};
+let activeN=1,curFilter=0;
+
+function norm(s){return s.trim().replace(/\s/g,'').toLowerCase().replace(/가지|개|m|의배수/g,'');}
+
+function updateStats(){
+  const ok=Object.values(state.res).filter(r=>r==='ok').length;
+  const ng=Object.values(state.res).filter(r=>r==='ng').length;
+  document.getElementById('s-ok').textContent=ok;
+  document.getElementById('s-ng').textContent=ng;
+  document.getElementById('s-left').textContent=30-ok-ng;
+  renderDots();renderQ(activeN);
+}
+
+function renderDots(){
+  const groups={1:[1,8],2:[9,15],3:[16,22],4:[23,30]};
+  Object.entries(groups).forEach(([cat,[s,e]])=>{
+    const w=document.getElementById('dots-'+cat);
+    if(!w)return;
+    w.innerHTML='';
+    for(let n=s;n<=e;n++){
+      const d=document.createElement('div');
+      const r=state.res[n];
+      d.className='dot'+(r==='ok'?' ok':r==='ng'?' ng':activeN===n?' cur':'');
+      d.textContent=n;d.title=`${n}번`;
+      d.onclick=()=>goQ(n);
+      w.appendChild(d);
+    }
+  });
+}
+
+function filterCat(c,el){
+  curFilter=c;
+  document.querySelectorAll('.ct').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  const visible=c===0?QS:QS.filter(q=>q.cat===c);
+  if(visible.length>0&&(c===0||!visible.find(q=>q.n===activeN))) goQ(visible[0].n);
+  else renderQ(activeN);
+}
+
+function goQ(n){
+  activeN=n;renderDots();renderQ(n);
+  document.getElementById('q-area').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function getPrev(){
+  const list=curFilter===0?QS:QS.filter(q=>q.cat===curFilter);
+  const idx=list.findIndex(q=>q.n===activeN);
+  return idx>0?list[idx-1].n:null;
+}
+function getNext(){
+  const list=curFilter===0?QS:QS.filter(q=>q.cat===curFilter);
+  const idx=list.findIndex(q=>q.n===activeN);
+  const isLast=idx===list.length-1;
+  return isLast?null:list[idx+1].n;
+}
+
+function renderQ(n){
+  const q=QS[n-1];
+  if(!q){document.getElementById('q-area').innerHTML='';return;}
+  const r=state.res[n];
+  const prev=getPrev(),next=getNext();
+  const list=curFilter===0?QS:QS.filter(q=>q.cat===curFilter);
+  const isLast=!next;
+  const area=document.getElementById('q-area');
+  area.innerHTML=`<div class="q-card">
+    <div class="qh">
+      <div class="qh-left">
+        <div class="q-num">${n}번</div>
+        <span class="tag ${CAT_CLR[q.cat]} q-cat">${CATS[q.cat]}</span>
+      </div>
+      <div class="q-nav-btns">
+        <button class="btn" onclick="goQ(${prev})" ${!prev?'disabled':''}>←</button>
+        <button class="btn" onclick="goQ(${next})" ${!next?'disabled':''}>→</button>
+      </div>
+    </div>
+    <div class="q-stem">${q.stem}</div>
+    <div class="ans-label">내 답:</div>
+    <input type="text" id="ans_${n}" class="ans-input${r==='ok'?' ok':r==='ng'?' ng':''}" placeholder="답을 입력하세요..." ${r?'readonly':''}
+      onkeydown="if(event.key==='Enter')checkAns(${n})">
+    <div class="hint-box${state.hints[n]?' on':''}" id="hint_${n}">${q.hint}</div>
+    <div class="btn-row">
+      ${!r?`<button class="btn pri" onclick="checkAns(${n})">정답 확인</button>`:''}
+      ${!r?`<button class="btn" onclick="showHint(${n})">힌트</button>`:''}
+      ${!r?`<button class="btn" onclick="showSolution(${n})">해설 보기</button>`:''}
+      ${r?`<button class="btn" onclick="resetQ(${n})">다시 풀기</button>`:''}
+    </div>
+    <div class="fb${r?(' on '+(r==='ok'?'ok':'ng')):''}${r?'':''}" id="fb_${n}">
+      <div class="fb-title ${r||''}"></div>
+      <div class="fb-body"></div>
+    </div>
+    <div class="nav-bot">
+      <button class="btn" onclick="goQ(${prev})" ${!prev?'disabled':''}>← 이전</button>
+      ${isLast?`<button class="btn pri" onclick="showResult()">전체 결과</button>`:`<button class="btn pri" onclick="goQ(${next})">다음 →</button>`}
+    </div>
+  </div>`;
+  if(r) populateFb(n,r==='ok');
+}
+
+function checkAns(n){
+  const q=QS[n-1];
+  const inp=document.getElementById('ans_'+n);
+  const val=inp?inp.value:'';
+  const correct=norm(val)===norm(q.ans)||norm(val)===norm(q.ans.split(' ')[0]);
+  state.res[n]=correct?'ok':'ng';
+  if(inp)inp.className='ans-input '+(correct?'ok':'ng');
+  populateFb(n,correct);
+  updateStats();
+}
+
+function populateFb(n,correct){
+  const q=QS[n-1];
+  const fb=document.getElementById('fb_'+n);
+  if(!fb)return;
+  fb.className='feedback on '+(correct?'ok':'ng');
+  const title=fb.querySelector('.fb-title');
+  const body=fb.querySelector('.fb-body');
+  if(title){title.className='fb-title '+(correct?'ok':'ng');title.textContent=correct?'정답입니다! 🎉':'오답입니다.';}
+  if(body){
+    let html=`<p style="margin-bottom:8px">${q.explanation}</p>`;
+    if(!correct) html+=`<div class="ans-box"><div class="ab-l">정답</div><div class="ab-v">${q.ans}</div></div>`;
+    html+=`<div style="display:flex;flex-direction:column;gap:4px;margin-top:8px">`;
+    q.steps.forEach((s,i)=>html+=`<div style="display:flex;gap:8px;padding:6px 10px;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:4px;font-size:12px"><span style="color:var(--color-text-tertiary);min-width:16px;font-weight:500">${i+1}</span><span>${s}</span></div>`);
+    html+='</div>';
+    body.innerHTML=html;
+  }
+}
+
+function showHint(n){
+  state.hints[n]=true;
+  const h=document.getElementById('hint_'+n);
+  if(h)h.classList.add('on');
+}
+
+function showSolution(n){
+  state.res[n]=state.res[n]||'ng';
+  const inp=document.getElementById('ans_'+n);
+  if(inp){inp.className='ans-input ng';inp.readOnly=true;}
+  populateFb(n,false);
+  updateStats();
+}
+
+function resetQ(n){
+  delete state.res[n];delete state.hints[n];
+  updateStats();renderQ(n);
+}
+
+function showResult(){
+  const ok=Object.values(state.res).filter(r=>r==='ok').length;
+  const rp=document.getElementById('result-panel');
+  let msg=ok>=27?'완벽합니다! 이산수학 고수!':ok>=20?'우수합니다! 조금만 더 연습하세요.':ok>=15?'절반 이상! 꾸준히 도전하세요.':'기초부터 다시 복습해봐요!';
+  let html=`<div class="rp-score">${ok} / 30</div><div class="rp-msg">${msg}</div><div class="rp-grid">`;
+  QS.forEach(q=>{
+    const r=state.res[q.n];
+    html+=`<div class="rp-item"><div class="rpi-n">${q.n}번</div><div class="rpi-r" style="color:${r==='ok'?'#1D9E75':r==='ng'?'#E24B4A':'var(--color-text-tertiary)'}">${r==='ok'?'✓':r==='ng'?'✗':'—'}</div></div>`;
+  });
+  html+=`</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.5rem">`;
+  Object.entries(CATS).forEach(([c,name])=>{
+    const qs=QS.filter(q=>q.cat===parseInt(c));
+    const cnt=qs.filter(q=>state.res[q.n]==='ok').length;
+    html+=`<div style="padding:10px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md)"><div style="font-size:11px;color:var(--color-text-secondary);margin-bottom:4px">${name}</div><div style="font-size:16px;font-weight:500">${cnt}/${qs.length}</div></div>`;
+  });
+  html+=`</div><button class="btn pri" onclick="document.getElementById('result-panel').classList.remove('on');goQ(1)">처음부터 다시 풀기</button>`;
+  rp.innerHTML=html;rp.classList.add('on');
+  rp.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+renderDots();renderQ(1);
+</script>

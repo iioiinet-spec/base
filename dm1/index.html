@@ -1,0 +1,424 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.root{font-family:var(--font-sans);padding:2rem 0}
+.hero{margin-bottom:1.75rem}
+.hero-ey{font-size:11px;font-weight:500;color:var(--color-text-tertiary);letter-spacing:.06em;margin-bottom:6px}
+.hero-title{font-size:22px;font-weight:500;margin-bottom:6px}
+.hero-desc{font-size:13px;color:var(--color-text-secondary);line-height:1.7;margin-bottom:1rem;max-width:560px}
+.tag{font-size:11px;padding:3px 10px;border-radius:9px;border:0.5px solid;font-weight:500;display:inline-block}
+.tb{background:#EAF3DE;color:#27500A;border-color:#97C459}
+.tp{background:#E6F1FB;color:#0C447C;border-color:#85B7EB}
+.ta{background:#FAEEDA;color:#633806;border-color:#EF9F27}
+.tpu{background:#EEEDFE;color:#26215C;border-color:#AFA9EC}
+.tr{background:#FCEBEB;color:#A32D2D;border-color:#F09595}
+
+.stat-row{display:flex;gap:10px;margin-bottom:1.5rem;flex-wrap:wrap}
+.stat-card{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:.75rem 1.25rem;flex:1;min-width:80px}
+.sc-lbl{font-size:11px;color:var(--color-text-secondary);margin-bottom:3px}
+.sc-val{font-size:22px;font-weight:500}
+
+.prog-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:1.5rem}
+.pd{width:30px;height:30px;border-radius:50%;border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:var(--color-text-tertiary)}
+.pd:hover{border-color:var(--color-border-primary)}
+.pd.correct{background:#1D9E75;border-color:#0F6E56;color:#fff}
+.pd.wrong{background:#E24B4A;border-color:#A32D2D;color:#fff}
+.pd.cur{border-color:var(--color-text-primary);background:var(--color-background-primary);color:var(--color-text-primary);border-width:1.5px}
+
+.q-nav{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:1.5rem}
+.qn{font-size:12px;padding:5px 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);cursor:pointer;color:var(--color-text-secondary);transition:all .15s}
+.qn:hover{background:var(--color-background-secondary)}
+.qn.active{background:var(--color-text-primary);color:var(--color-background-primary);border-color:transparent}
+.qn.correct{border-color:#1D9E75;color:#1D9E75}
+.qn.wrong{border-color:#E24B4A;color:#E24B4A}
+
+.q-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1.5rem;margin-bottom:1rem}
+.q-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
+.q-num{font-size:15px;font-weight:500}
+.q-type{font-size:11px;padding:3px 9px;border-radius:9px;border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary)}
+.q-stem{font-size:13px;line-height:1.9;color:var(--color-text-primary);margin-bottom:1.25rem;white-space:pre-wrap}
+.q-stem ul{list-style:none;padding-left:16px;margin:6px 0}
+.q-stem li{margin-bottom:4px}
+.q-stem li::before{content:"• ";color:var(--color-text-tertiary)}
+.ans-wrap{margin-bottom:1rem}
+.ans-label{font-size:12px;color:var(--color-text-secondary);margin-bottom:6px}
+.ans-input{width:100%;padding:9px 13px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-primary);font-size:13px;font-family:var(--font-sans)}
+.ans-input:focus{outline:none;border-color:var(--color-border-primary);background:var(--color-background-primary)}
+.ans-input.ok{border-color:#1D9E75;background:#EAF3DE;color:#173404}
+.ans-input.ng{border-color:#E24B4A;background:#FCEBEB;color:#501313}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem}
+button.btn{font-size:13px;padding:7px 16px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-primary);cursor:pointer;transition:all .15s}
+button.btn:hover{background:var(--color-background-secondary)}
+button.btn:active{transform:scale(.98)}
+button.btn.pri{background:var(--color-text-primary);color:var(--color-background-primary);border-color:transparent}
+button.btn:disabled{opacity:.4;cursor:not-allowed}
+.hint-box{display:none;background:#EEEDFE;border:0.5px solid #534AB7;border-radius:var(--border-radius-md);padding:10px 14px;font-size:12px;color:#26215C;line-height:1.7;margin-bottom:1rem}
+.hint-box.on{display:block}
+.feedback{display:none;border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-bottom:1rem;border:0.5px solid}
+.feedback.on{display:block}
+.feedback.ok{background:#EAF3DE;border-color:#3B6D11}
+.feedback.ng{background:#FCEBEB;border-color:#E24B4A}
+.fb-title{font-size:13px;font-weight:500;margin-bottom:8px}
+.fb-title.ok{color:#173404}
+.fb-title.ng{color:#501313}
+.fb-body{font-size:13px;line-height:1.8;color:var(--color-text-primary)}
+.ans-reveal{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 14px;margin-top:10px}
+.ar-lbl{font-size:11px;color:var(--color-text-secondary);margin-bottom:3px}
+.ar-val{font-size:16px;font-weight:500;color:var(--color-text-primary)}
+.step-list{display:flex;flex-direction:column;gap:5px;margin-top:8px}
+.step-item{display:flex;gap:8px;padding:7px 10px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md)}
+.si-n{font-size:11px;font-weight:500;color:var(--color-text-tertiary);min-width:16px;padding-top:1px}
+.si-t{font-size:12px;line-height:1.6;color:var(--color-text-primary)}
+.nav-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:1rem}
+.result-panel{display:none;background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:2rem;text-align:center;margin-bottom:1rem}
+.result-panel.on{display:block}
+.result-score{font-size:32px;font-weight:500;margin-bottom:8px}
+.result-msg{font-size:14px;color:var(--color-text-secondary);margin-bottom:1.5rem}
+.result-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:1.5rem}
+.rg-item{padding:8px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);text-align:center}
+.rgi-n{font-size:11px;color:var(--color-text-secondary);margin-bottom:3px}
+.rgi-r{font-size:13px;font-weight:500}
+</style>
+
+<div class="root">
+<h2 style="position:absolute;opacity:0;pointer-events:none">중등올림피아드 이산수학 연습 10문제</h2>
+
+<div class="hero">
+  <div class="hero-ey">중등올림피아드 이산수학</div>
+  <div class="hero-title">이산수학 연습 문제 10개</div>
+  <div class="hero-desc">연도 규칙, 스택, 모듈러 산술, 그래프, 조합 등 KOI 스타일 이산수학 문제를 직접 풀고 단계별 해설을 확인하세요.</div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <span class="tag tp">모듈러 산술</span>
+    <span class="tag tpu">스택/자료구조</span>
+    <span class="tag ta">조합론</span>
+    <span class="tag tb">그래프</span>
+    <span class="tag tr">집합</span>
+  </div>
+</div>
+
+<div class="stat-row">
+  <div class="stat-card"><div class="sc-lbl">전체</div><div class="sc-val">10</div></div>
+  <div class="stat-card"><div class="sc-lbl">맞은 문제</div><div class="sc-val" id="s-correct" style="color:#1D9E75">0</div></div>
+  <div class="stat-card"><div class="sc-lbl">틀린 문제</div><div class="sc-val" id="s-wrong" style="color:#E24B4A">0</div></div>
+  <div class="stat-card"><div class="sc-lbl">남은 문제</div><div class="sc-val" id="s-left">10</div></div>
+</div>
+
+<div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:6px">진도 현황:</div>
+<div class="prog-row" id="prog-row"></div>
+<div class="q-nav" id="q-nav"></div>
+<div id="q-area"></div>
+<div class="result-panel" id="result-panel"></div>
+</div>
+
+<script>
+const QS=[
+  {n:1,type:'연도·배수',
+   stem:'2026년 이후의 연도 중에서,\n연도의 각 자리 숫자의 합이 9이면서 4의 배수인\n가장 가까운 연도를 구하시오.',
+   ans:'2052',
+   hint:'4의 배수 판별은 마지막 두 자리만 보면 됩니다. 자릿수 합이 9인 연도를 2027부터 순서대로 찾아가세요.',
+   steps:[
+     '자릿수 합 9: 2034(9✓), 2043(9✓), 2052(9✓) 순서로 확인',
+     '2034의 마지막 두 자리 34 → 34÷4=8...2 → 4의 배수 아님',
+     '2043의 마지막 두 자리 43 → 4의 배수 아님',
+     '2052의 마지막 두 자리 52 → 52÷4=13 → 4의 배수!',
+     '따라서 정답: 2052'
+   ],
+   explanation:'자릿수 합이 9이고 4의 배수인 가장 가까운 연도는 2052입니다.'},
+  {n:2,type:'스택',
+   stem:'빈 스택에 다음 연산을 순서대로 수행한다.\n• 3, 5, 7을 차례대로 넣는다.\n• 2개를 뺀다.\n• 8, 9를 차례대로 넣는다.\n• 1개를 뺀다.\n• 10을 넣는다.\n• 스택이 빌 때까지 모두 뺀다.\n\n전체 과정에서 빠져나오는 수를 순서대로 쓰시오.',
+   ans:'7, 5, 9, 10, 8, 3',
+   hint:'스택은 LIFO — 나중에 넣은 것이 먼저 나옵니다. 각 단계마다 스택 상태를 그려보세요.',
+   steps:[
+     '3,5,7 삽입 → 스택: [3,5,7↑]',
+     '2개 제거 → 7 출력, 5 출력 / 스택: [3]',
+     '8,9 삽입 → 스택: [3,8,9↑]',
+     '1개 제거 → 9 출력 / 스택: [3,8]',
+     '10 삽입 → 스택: [3,8,10↑]',
+     '전부 제거 → 10,8,3 순서 출력',
+     '전체 출력 순서: 7, 5, 9, 10, 8, 3'
+   ],
+   explanation:'스택(LIFO)의 원리로 각 단계를 추적하면 7→5→9→10→8→3 순서입니다.'},
+  {n:3,type:'논리·부등식',
+   stem:'산 A, B, C, D의 높이에 대해 다음을 안다.\n• A는 B보다 40m 높다.\n• B는 C보다 25m 낮다.\n• D는 C보다 15m 높다.\n\n이때 A가 D보다 몇 m 높은지 구하시오.',
+   ans:'0',
+   hint:'C를 기준으로 A와 D의 높이를 각각 C로 표현해 보세요.',
+   steps:[
+     'B = C - 25 (B는 C보다 25m 낮다)',
+     'A = B + 40 = (C-25)+40 = C+15',
+     'D = C + 15 (D는 C보다 15m 높다)',
+     'A = C+15, D = C+15 → A = D',
+     '높이 차: A - D = 0m'
+   ],
+   explanation:'A와 D 모두 C보다 15m 높으므로 A = D, 높이 차는 0m입니다.'},
+  {n:4,type:'조합',
+   stem:'1부터 8까지의 숫자가 적힌 카드가 각각 1장씩 있다.\n이 중 서로 다른 3장을 골라 합이 15가 되게 하는\n방법은 모두 몇 가지인가?',
+   ans:'6',
+   hint:'가장 작은 카드부터 순서대로 경우를 나열해 보세요. 같은 수 두 장은 없습니다.',
+   steps:[
+     '1+_+_ = 15: (1,6,8) ✓',
+     '2+_+_ = 15: (2,5,8) ✓, (2,6,7) ✓',
+     '3+_+_ = 15: (3,4,8) ✓, (3,5,7) ✓',
+     '4+_+_ = 15: (4,5,6) ✓',
+     '5 이상 시작은 세 수 합이 5+6+7=18>15이므로 고려 불필요',
+     '총 6가지: {1,6,8},{2,5,8},{2,6,7},{3,4,8},{3,5,7},{4,5,6}'
+   ],
+   explanation:'합이 15가 되는 서로 다른 세 카드 조합은 총 6가지입니다.'},
+  {n:5,type:'모듈러 산술',
+   stem:'자연수 n이 다음 조건을 모두 만족한다.\n• 100을 n으로 나누면 나머지가 4이다.\n• 142를 n으로 나누면 나머지가 4이다.\n\n이런 n의 값은 모두 몇 개인가?',
+   ans:'1',
+   hint:'두 조건에서 100과 142의 차이를 이용하면 n이 어떤 수의 약수인지 알 수 있습니다.',
+   steps:[
+     '100 ≡ 4(mod n) → 96이 n의 배수',
+     '142 ≡ 4(mod n) → 138이 n의 배수',
+     'n은 gcd(96,138)의 약수여야 함',
+     'gcd(96,138) = gcd(96,42) = gcd(42,12) = gcd(12,6) = 6',
+     '6의 약수: 1,2,3,6 → n>4 조건으로 n=6만 가능',
+     '검증: 100÷6=16...4 ✓, 142÷6=23...4 ✓',
+     '정답: 1개'
+   ],
+   explanation:'96과 138의 최대공약수 6의 약수 중 n>4를 만족하는 것은 6뿐이므로 1개입니다.'},
+  {n:6,type:'경우의 수',
+   stem:'후보 A, B, C 세 명에게 4명이 각각 한 표씩 투표한다.\n각 사람은 독립적으로 세 후보 중 한 명에게 투표한다.\n\nA의 득표 수가 B의 득표 수보다 많은 경우는 모두 몇 가지인가?',
+   ans:'31',
+   hint:'전체 경우의 수에서 A=B인 경우를 구하고 대칭성을 이용하세요.',
+   steps:[
+     '전체: 3⁴ = 81가지',
+     'A>B와 A<B는 대칭이므로 개수 같음 → A=B인 경우 먼저 계산',
+     'A=0,B=0(모두C): 1가지',
+     'A=1,B=1(나머지2명→C): 4!/(1!1!2!) = 12가지',
+     'A=2,B=2(4명 중 A2,B2): 4!/(2!2!) = 6가지',
+     'A=B 합계: 1+12+6 = 19가지',
+     'A>B = (81-19)/2 = 62/2 = 31가지'
+   ],
+   explanation:'대칭성으로 A>B = (전체-A=B)/2 = (81-19)/2 = 31가지입니다.'},
+  {n:7,type:'집합·조합',
+   stem:'집합 {a, b, c, d, e}의 부분집합 중에서\n원소의 개수가 짝수인 부분집합은 모두 몇 개인가?',
+   ans:'16',
+   hint:'전체 부분집합의 절반이 짝수 개 원소를 가집니다. 직접 세어 확인해보세요.',
+   steps:[
+     '전체 부분집합: 2⁵ = 32개',
+     '짝수 개 = 홀수 개 (대칭)',
+     'C(5,0) = 1 (원소 0개)',
+     'C(5,2) = 10 (원소 2개)',
+     'C(5,4) = 5 (원소 4개)',
+     '합계: 1+10+5 = 16개'
+   ],
+   explanation:'원소가 짝수 개인 부분집합은 C(5,0)+C(5,2)+C(5,4) = 1+10+5 = 16개입니다.'},
+  {n:8,type:'그래프·위상정렬',
+   stem:'방향 그래프: A→B, A→C, B→D, C→D\n\n각 정점 A,B,C,D에 1,2,3,4 중 하나의 수를 적는다.\n간선 X→Y가 있으면 X에 적힌 수가 Y에 적힌 수보다 작아야 한다.\n\n조건을 만족하는 한 가지 예를 쓰시오.\n예: A=?, B=?, C=?, D=?',
+   ans:'A=1, B=2, C=3, D=4',
+   hint:'A→B, A→C, B→D, C→D 순서로 작은 수부터 배정하면 됩니다. 단, B≠C 여야 합니다.',
+   steps:[
+     '조건: A<B, A<C, B<D, C<D',
+     'A는 B,C보다 작아야 → 가장 작은 1 배정',
+     'D는 B,C보다 커야 → 가장 큰 4 배정',
+     'B,C는 서로 다른 2,3 배정 (순서 무관)',
+     'A=1, B=2, C=3, D=4: 1<2✓ 1<3✓ 2<4✓ 3<4✓',
+     '또는 A=1, B=3, C=2, D=4도 가능'
+   ],
+   explanation:'위상 순서대로 작은 수를 배정하면 됩니다. A=1,B=2,C=3,D=4가 가장 간단합니다.'},
+  {n:9,type:'문자열·역추적',
+   stem:'문자열 S는 처음에 A이다.\n연산 1: S 맨 뒤에 A를 붙인다.\n연산 2: S 전체를 뒤집은 뒤 맨 뒤에 B를 붙인다.\n\n최종 문자열이 BAABA가 되었다면\n사용한 연산 순서를 숫자로 쓰시오.',
+   ans:'1221',
+   hint:'결과에서 거꾸로 추적하세요. 마지막 글자가 A면 연산1, B면 연산2가 마지막이었습니다.',
+   steps:[
+     'BAABA: 마지막 A → 연산1이었음. A 제거: BAAB',
+     'BAAB: 마지막 B → 연산2였음. B 제거 후 뒤집기: BAA→AAB',
+     'AAB: 마지막 B → 연산2였음. B 제거 후 뒤집기: AA→AA',
+     'AA: 마지막 A → 연산1이었음. A 제거: A (시작점)',
+     '역추적 순서: 1,2,2,1 → 실제 순서(뒤집기): 1221',
+     '검증: A→1→AA→2→AAB→2→BAAB→1→BAABA ✓'
+   ],
+   explanation:'역방향으로 추적한 뒤 순서를 뒤집으면 실제 연산 순서 1221을 얻습니다.'},
+  {n:10,type:'조합·수열',
+   stem:'숫자 1,2,3,4,5,6이 한 줄로 놓여 있다.\n이 중 연속한 2개 숫자만 골라 합을 구할 수 있다고 하자.\n\n가능한 합은 모두 몇 가지인가?',
+   ans:'5',
+   hint:'1+2, 2+3, 3+4, 4+5, 5+6 — 연속한 두 수의 합을 모두 나열해 보세요.',
+   steps:[
+     '1+2 = 3',
+     '2+3 = 5',
+     '3+4 = 7',
+     '4+5 = 9',
+     '5+6 = 11',
+     '모두 서로 다른 값: {3,5,7,9,11}',
+     '가능한 합의 종류: 5가지'
+   ],
+   explanation:'연속한 두 수의 합은 3,5,7,9,11로 모두 5가지입니다.'},
+];
+
+const state={results:{},hints:{}};
+let activeN=1;
+
+function updateStats(){
+  const correct=Object.values(state.results).filter(r=>r==='correct').length;
+  const wrong=Object.values(state.results).filter(r=>r==='wrong').length;
+  document.getElementById('s-correct').textContent=correct;
+  document.getElementById('s-wrong').textContent=wrong;
+  document.getElementById('s-left').textContent=10-correct-wrong;
+}
+
+function renderProg(){
+  const w=document.getElementById('prog-row');
+  w.innerHTML='';
+  QS.forEach(q=>{
+    const d=document.createElement('div');
+    const r=state.results[q.n];
+    d.className='pd'+(r==='correct'?' correct':r==='wrong'?' wrong':activeN===q.n?' cur':'');
+    d.title=`${q.n}번`;d.textContent=q.n;
+    d.onclick=()=>goQ(q.n);
+    w.appendChild(d);
+  });
+}
+
+function renderNav(){
+  const w=document.getElementById('q-nav');
+  w.innerHTML='';
+  QS.forEach(q=>{
+    const btn=document.createElement('button');
+    const r=state.results[q.n];
+    btn.className='qn'+(activeN===q.n?' active':r==='correct'?' correct':r==='wrong'?' wrong':'');
+    btn.textContent=`${q.n}번`;
+    btn.onclick=()=>goQ(q.n);
+    w.appendChild(btn);
+  });
+}
+
+function goQ(n){
+  activeN=n;
+  renderNav();renderProg();
+  renderQ(n);
+  document.getElementById('q-area').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function normalize(s){
+  return s.replace(/\s/g,'').replace(/,/g,'').toLowerCase();
+}
+
+function checkAnswer(n){
+  const q=QS[n-1];
+  const inp=document.getElementById('ans_'+n);
+  const val=inp?inp.value.trim():'';
+  const correct=normalize(val)===normalize(q.ans)||normalize(val)===normalize(q.ans.replace(/가지/,'').replace(/개/,'').replace(/m/,'').trim());
+  state.results[n]=correct?'correct':'wrong';
+  updateStats();renderProg();renderNav();
+  if(inp){inp.className='ans-input '+(correct?'ok':'ng');}
+  const fb=document.getElementById('fb_'+n);
+  if(fb){
+    fb.className='feedback on '+(correct?'ok':'ng');
+    const title=fb.querySelector('.fb-title');
+    const body=fb.querySelector('.fb-body');
+    if(title){title.className='fb-title '+(correct?'ok':'ng');title.textContent=correct?'정답입니다! 🎉':'오답입니다.';}
+    if(body){
+      let html=`<p style="margin-bottom:8px">${q.explanation}</p>`;
+      if(!correct){
+        html+=`<div class="ans-reveal"><div class="ar-lbl">정답</div><div class="ar-val">${q.ans}</div></div>`;
+      }
+      html+=`<div class="step-list" style="margin-top:8px">`;
+      q.steps.forEach((s,i)=>{html+=`<div class="step-item"><div class="si-n">${i+1}</div><div class="si-t">${s}</div></div>`;});
+      html+=`</div>`;
+      body.innerHTML=html;
+    }
+  }
+}
+
+function showHint(n){
+  state.hints[n]=true;
+  const h=document.getElementById('hint_'+n);
+  if(h)h.classList.add('on');
+}
+
+function showSolution(n){
+  const q=QS[n-1];
+  const fb=document.getElementById('fb_'+n);
+  if(fb){
+    fb.className='feedback on ng';
+    const title=fb.querySelector('.fb-title');
+    const body=fb.querySelector('.fb-body');
+    if(title){title.className='fb-title ng';title.textContent='해설 보기';}
+    if(body){
+      let html=`<p style="margin-bottom:8px">${q.explanation}</p>`;
+      html+=`<div class="ans-reveal"><div class="ar-lbl">정답</div><div class="ar-val">${q.ans}</div></div>`;
+      html+=`<div class="step-list" style="margin-top:8px">`;
+      q.steps.forEach((s,i)=>{html+=`<div class="step-item"><div class="si-n">${i+1}</div><div class="si-t">${s}</div></div>`;});
+      html+=`</div>`;
+      body.innerHTML=html;
+    }
+  }
+  if(!state.results[n]) state.results[n]='wrong';
+  updateStats();renderProg();renderNav();
+}
+
+function renderQ(n){
+  const q=QS[n-1];
+  const area=document.getElementById('q-area');
+  const r=state.results[n];
+  area.innerHTML=`<div class="q-card">
+    <div class="q-header">
+      <div class="q-num">${q.n}번 문제 <span class="q-type">${q.type}</span></div>
+    </div>
+    <div class="q-stem">${q.stem}</div>
+    <div class="ans-wrap">
+      <div class="ans-label">답 입력:</div>
+      <input type="text" id="ans_${n}" class="ans-input${r==='correct'?' ok':r==='wrong'?' ng':''}" placeholder="답을 입력하세요..." value="${(document.getElementById('ans_'+n)&&document.getElementById('ans_'+n).value)||''}" ${r?'readonly':''}>
+    </div>
+    <div class="hint-box${state.hints[n]?' on':''}" id="hint_${n}">${q.hint}</div>
+    <div class="btn-row">
+      ${!r?`<button class="btn pri" onclick="checkAnswer(${n})">정답 확인</button>`:''}
+      ${!r?`<button class="btn" onclick="showHint(${n})">힌트 보기</button>`:''}
+      ${!r?`<button class="btn" onclick="showSolution(${n})">해설 보기</button>`:''}
+      ${r?`<button class="btn" onclick="resetQ(${n})">다시 풀기</button>`:''}
+    </div>
+    <div class="feedback${r?(' on '+(r==='correct'?'ok':'ng')):''}${r?'':''}" id="fb_${n}">
+      <div class="fb-title ${r?r:''}"></div>
+      <div class="fb-body"></div>
+    </div>
+    <div class="nav-bottom">
+      <button class="btn" onclick="goQ(${n>1?n-1:1})" ${n===1?'disabled':''}>← 이전</button>
+      ${n===10?`<button class="btn pri" onclick="showResult()">전체 결과 보기</button>`:
+      `<button class="btn pri" onclick="goQ(${n+1})">다음 →</button>`}
+    </div>
+  </div>`;
+  if(r){
+    const fb=document.getElementById('fb_'+n);
+    const title=fb?fb.querySelector('.fb-title'):null;
+    const body=fb?fb.querySelector('.fb-body'):null;
+    if(title){title.className='fb-title '+(r==='correct'?'ok':'ng');title.textContent=r==='correct'?'정답입니다! 🎉':'오답 / 해설';}
+    if(body){
+      let html=`<p style="margin-bottom:8px">${q.explanation}</p>`;
+      if(r==='wrong') html+=`<div class="ans-reveal"><div class="ar-lbl">정답</div><div class="ar-val">${q.ans}</div></div>`;
+      html+=`<div class="step-list" style="margin-top:8px">`;
+      q.steps.forEach((s,i)=>{html+=`<div class="step-item"><div class="si-n">${i+1}</div><div class="si-t">${s}</div></div>`;});
+      html+=`</div>`;
+      body.innerHTML=html;
+    }
+  }
+}
+
+function resetQ(n){
+  delete state.results[n];
+  delete state.hints[n];
+  updateStats();renderProg();renderNav();
+  renderQ(n);
+}
+
+function showResult(){
+  const correct=Object.values(state.results).filter(r=>r==='correct').length;
+  const rp=document.getElementById('result-panel');
+  let msg='';
+  if(correct>=9) msg='완벽합니다! 이산수학 실력이 뛰어납니다.';
+  else if(correct>=7) msg='잘 했습니다! 틀린 문제를 다시 확인해보세요.';
+  else if(correct>=5) msg='절반 이상 맞았습니다. 꾸준히 연습하세요!';
+  else msg='기초부터 다시 복습해봐요. 할 수 있습니다!';
+  let html=`<div class="result-score">${correct} / 10</div><div class="result-msg">${msg}</div><div class="result-grid">`;
+  QS.forEach(q=>{
+    const r=state.results[q.n];
+    html+=`<div class="rg-item"><div class="rgi-n">${q.n}번</div><div class="rgi-r" style="color:${r==='correct'?'#1D9E75':r==='wrong'?'#E24B4A':'var(--color-text-tertiary)'}">${r==='correct'?'✓':r==='wrong'?'✗':'—'}</div></div>`;
+  });
+  html+=`</div><button class="btn pri" onclick="document.getElementById('result-panel').classList.remove('on');goQ(1)">처음부터 다시 풀기</button>`;
+  rp.innerHTML=html;
+  rp.classList.add('on');
+  rp.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+renderProg();renderNav();renderQ(1);
+</script>
