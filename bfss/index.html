@@ -1,0 +1,2115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BFS 심화 문제집 — 백준 7선</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600;700&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1a1410;
+    --surface: #231c16;
+    --surface2: #2d251d;
+    --border: #3d3028;
+    --amber: #f59e0b;
+    --amber2: #d97706;
+    --cream: #fef3c7;
+    --rust: #dc2626;
+    --teal: #0d9488;
+    --sage: #65a30d;
+    --text: #fef3c7;
+    --text2: #d4b896;
+    --text3: #7a5c44;
+    --glow-amber: 0 0 24px rgba(245,158,11,0.2);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Noise texture overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.6;
+  }
+
+  /* Diagonal stripe bg */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 40px,
+      rgba(245,158,11,0.015) 40px,
+      rgba(245,158,11,0.015) 41px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ══ HEADER ══ */
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 0;
+    border-bottom: 2px solid var(--border);
+    overflow: hidden;
+  }
+
+  .header-inner {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    padding: 40px 48px 32px;
+    gap: 20px;
+  }
+
+  .header-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .header-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 1px;
+    background: var(--amber);
+  }
+
+  header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(40px, 7vw, 80px);
+    line-height: 0.95;
+    letter-spacing: 2px;
+    color: var(--cream);
+  }
+  header h1 span {
+    color: var(--amber);
+    -webkit-text-stroke: 1px var(--amber2);
+  }
+
+  .header-sub {
+    font-family: 'Crimson Pro', serif;
+    font-size: 17px;
+    font-style: italic;
+    color: var(--text2);
+    margin-top: 12px;
+  }
+
+  .header-right {
+    text-align: right;
+  }
+
+  .prob-counter {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 72px;
+    color: var(--border);
+    line-height: 1;
+    -webkit-text-stroke: 1px var(--border);
+  }
+
+  .header-tags {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .htag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .htag-amber { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: var(--amber); }
+  .htag-teal { background: rgba(13,148,136,0.15); border: 1px solid rgba(13,148,136,0.3); color: #2dd4bf; }
+  .htag-rust { background: rgba(220,38,38,0.12); border: 1px solid rgba(220,38,38,0.3); color: #fca5a5; }
+
+  /* ══ MAIN LAYOUT ══ */
+  .layout {
+    position: relative;
+    z-index: 5;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: calc(100vh - 200px);
+  }
+
+  /* ══ SIDEBAR ══ */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 28px 0;
+    position: sticky;
+    top: 0;
+    height: calc(100vh - 200px);
+    overflow-y: auto;
+    background: var(--surface);
+  }
+  .sidebar::-webkit-scrollbar { width: 3px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .sb-section {
+    padding: 0 0 12px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sb-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 0 22px 10px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    padding: 11px 22px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all 0.2s;
+    gap: 11px;
+    position: relative;
+  }
+  .nav-item:hover { background: rgba(245,158,11,0.04); border-left-color: rgba(245,158,11,0.3); }
+  .nav-item.active {
+    background: rgba(245,158,11,0.08);
+    border-left-color: var(--amber);
+  }
+
+  .nav-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--amber);
+    min-width: 40px;
+    font-weight: 600;
+  }
+  .nav-title {
+    font-size: 12.5px;
+    color: var(--text2);
+    font-weight: 400;
+    line-height: 1.3;
+    flex: 1;
+  }
+  .nav-item.active .nav-title { color: var(--cream); }
+
+  .nav-badge {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--text3);
+    transition: all 0.3s;
+    flex-shrink: 0;
+  }
+  .nav-badge.done { background: var(--sage); box-shadow: 0 0 6px var(--sage); }
+
+  .sb-tip {
+    margin: 12px 16px 0;
+    padding: 10px 12px;
+    background: rgba(245,158,11,0.05);
+    border: 1px solid rgba(245,158,11,0.15);
+    border-radius: 4px;
+    font-size: 11px;
+    color: var(--text3);
+    line-height: 1.5;
+    font-family: 'Crimson Pro', serif;
+    font-style: italic;
+  }
+  .sb-tip strong { color: var(--amber); font-style: normal; font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+
+  /* ══ CONTENT ══ */
+  .content { overflow: hidden; }
+
+  .prob-panel {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+    animation: slideIn 0.25s ease;
+  }
+  .prob-panel.active { display: flex; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(12px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* ══ PROBLEM HEADER ══ */
+  .prob-header {
+    padding: 24px 40px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: relative;
+    overflow: hidden;
+  }
+  .prob-header::after {
+    content: attr(data-num);
+    position: absolute;
+    right: 30px;
+    top: -10px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 100px;
+    color: rgba(245,158,11,0.06);
+    pointer-events: none;
+    line-height: 1;
+  }
+
+  .ph-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .ph-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 9px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+  }
+  .ph-boj { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.3); color: var(--amber); }
+  .ph-cat { background: rgba(13,148,136,0.12); border: 1px solid rgba(13,148,136,0.3); color: #2dd4bf; }
+  .ph-diff-s { background: rgba(148,163,184,0.1); border: 1px solid rgba(148,163,184,0.25); color: #94a3b8; }
+  .ph-diff-g { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25); color: var(--amber); }
+
+  .prob-header h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 1px;
+    color: var(--cream);
+  }
+  .prob-desc {
+    font-family: 'Crimson Pro', serif;
+    font-size: 16px;
+    color: var(--text2);
+    margin-top: 6px;
+    line-height: 1.6;
+    max-width: 680px;
+  }
+
+  /* ══ TABS ══ */
+  .tabs {
+    display: flex;
+    padding: 0 40px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    gap: 0;
+    overflow-x: auto;
+  }
+  .tab {
+    padding: 13px 18px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text3);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tab:hover { color: var(--text2); }
+  .tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+
+  /* ══ TAB CONTENT ══ */
+  .tab-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 40px;
+    background: var(--bg);
+  }
+  .tab-content::-webkit-scrollbar { width: 4px; }
+  .tab-content::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ══ IO BOXES ══ */
+  .io-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .io-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .io-head {
+    padding: 7px 14px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .io-box pre {
+    padding: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--cream);
+    line-height: 1.8;
+  }
+
+  /* ══ INSIGHT ══ */
+  .insight {
+    background: rgba(245,158,11,0.05);
+    border: 1px solid rgba(245,158,11,0.2);
+    border-left: 3px solid var(--amber);
+    padding: 14px 18px;
+    margin-bottom: 18px;
+    border-radius: 0 4px 4px 0;
+    font-family: 'Crimson Pro', serif;
+    font-size: 16px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+  .insight strong { color: var(--amber); font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; }
+
+  .warn-box {
+    background: rgba(220,38,38,0.06);
+    border: 1px solid rgba(220,38,38,0.2);
+    border-left: 3px solid var(--rust);
+    padding: 12px 16px;
+    margin-bottom: 18px;
+    border-radius: 0 4px 4px 0;
+    font-size: 13px;
+    color: #fca5a5;
+    line-height: 1.6;
+  }
+
+  /* ══ STEPS ══ */
+  .steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+  .step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 13px 16px;
+    border-radius: 4px;
+    transition: border-color 0.2s;
+  }
+  .step:hover { border-color: rgba(245,158,11,0.25); }
+  .step-n {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    color: var(--amber);
+    opacity: 0.5;
+    line-height: 1;
+    min-width: 24px;
+    margin-top: 1px;
+  }
+  .step-body { font-size: 13.5px; color: var(--text2); line-height: 1.6; }
+  .step-body strong { color: var(--cream); font-weight: 600; }
+  .step-body code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--surface2);
+    padding: 1px 5px;
+    border-radius: 2px;
+    color: var(--amber);
+  }
+
+  /* ══ CODE ══ */
+  .code-wrap {
+    background: #130f0a;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .code-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  .code-lang {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 2px;
+  }
+  .copy-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    background: transparent;
+    border: 1px solid var(--border);
+    padding: 3px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 2px;
+  }
+  .copy-btn:hover { color: var(--amber); border-color: rgba(245,158,11,0.4); }
+  .code-wrap pre {
+    padding: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.9;
+    overflow-x: auto;
+    color: var(--cream);
+  }
+
+  /* Syntax highlighting */
+  .kw { color: #f59e0b; font-weight: 600; }
+  .fn { color: #2dd4bf; }
+  .cm { color: #5c4a35; font-style: italic; }
+  .st { color: #86efac; }
+  .nm { color: #fda4af; }
+  .tp { color: #c4b5fd; }
+  .pp { color: #7dd3fc; }
+
+  /* ══ VISUALIZER ══ */
+  .vis-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .vis-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  canvas {
+    display: block;
+    max-width: 100%;
+    border-radius: 3px;
+    background: #0d0b08;
+  }
+  .vis-ctrls {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .vbtn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 7px 14px;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .vbtn:hover { border-color: rgba(245,158,11,0.4); color: var(--amber); }
+  .vbtn.primary { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.35); color: var(--amber); }
+  .vbtn.primary:hover { background: rgba(245,158,11,0.18); }
+  .vis-info-bar {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+  }
+  .vis-log {
+    margin-top: 12px;
+    background: #0d0b08;
+    border: 1px solid var(--border);
+    padding: 11px 14px;
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text2);
+    min-height: 38px;
+    line-height: 1.6;
+  }
+  .la { color: var(--amber); }
+  .lg { color: #4ade80; }
+  .lr { color: #f87171; }
+
+  /* ══ QUIZ ══ */
+  .quiz-prog {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+  }
+  .qpbar {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    border-radius: 1px;
+    overflow: hidden;
+  }
+  .qpfill {
+    height: 100%;
+    background: var(--amber);
+    transition: width 0.4s ease;
+  }
+
+  .quiz-q {
+    font-family: 'Crimson Pro', serif;
+    font-size: 18px;
+    color: var(--cream);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .quiz-opts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .qopt {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.18s;
+    font-size: 13.5px;
+    color: var(--text2);
+  }
+  .qopt:hover { border-color: rgba(245,158,11,0.3); color: var(--cream); }
+  .qopt.correct { border-color: #4ade80; background: rgba(74,222,128,0.06); color: #4ade80; }
+  .qopt.wrong { border-color: #f87171; background: rgba(248,113,113,0.06); color: #f87171; }
+  .qlabel {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text3);
+    min-width: 18px;
+  }
+  .qopt.correct .qlabel { color: #4ade80; }
+  .qopt.wrong .qlabel { color: #f87171; }
+
+  .qfb {
+    padding: 12px 16px;
+    border-radius: 3px;
+    font-family: 'Crimson Pro', serif;
+    font-size: 16px;
+    line-height: 1.6;
+    display: none;
+    margin-bottom: 12px;
+  }
+  .qfb.show { display: block; }
+  .qfb.correct { background: rgba(74,222,128,0.06); border: 1px solid rgba(74,222,128,0.25); color: #86efac; }
+  .qfb.wrong { background: rgba(248,113,113,0.06); border: 1px solid rgba(248,113,113,0.25); color: #fca5a5; }
+
+  .qnext {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 8px 16px;
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.3);
+    color: var(--amber);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: none;
+  }
+  .qnext.show { display: inline-block; }
+  .qnext:hover { background: rgba(245,158,11,0.2); }
+
+  .qscore {
+    text-align: center;
+    padding: 32px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    display: none;
+  }
+  .qscore.show { display: block; }
+  .score-big {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 80px;
+    color: var(--amber);
+    line-height: 1;
+    text-shadow: 0 0 40px rgba(245,158,11,0.3);
+  }
+  .score-msg {
+    font-family: 'Crimson Pro', serif;
+    font-size: 18px;
+    font-style: italic;
+    color: var(--text2);
+    margin-top: 10px;
+  }
+
+  /* ══ SECTION LABEL ══ */
+  .slabel {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    margin-top: 24px;
+  }
+  .slabel:first-child { margin-top: 0; }
+
+  /* ══ KEY BOX ══ */
+  .key-box {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .key-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 12px 14px;
+    border-radius: 3px;
+  }
+  .key-item-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--amber);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .key-item-val {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.5;
+  }
+
+  /* ══ RESPONSIVE ══ */
+  @media (max-width: 780px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .header-inner { grid-template-columns: 1fr; }
+    .header-right { display: none; }
+    .prob-header, .tabs, .tab-content { padding-left: 20px; padding-right: 20px; }
+    .io-row { grid-template-columns: 1fr; }
+  }
+  .mobile-sel {
+    display: none;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .mobile-sel select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--cream);
+    padding: 8px 12px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    border-radius: 3px;
+  }
+  @media (max-width: 780px) { .mobile-sel { display: block; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <div class="header-eyebrow">백준 온라인 저지 · BFS 심화편</div>
+      <h1>너비 우선 탐색<br><span>심화 문제집</span></h1>
+      <p class="header-sub">최단거리 · 다중시작점 · 상태공간 탐색 — 7가지 핵심 패턴</p>
+      <div class="header-tags">
+        <span class="htag htag-amber">7 Problems</span>
+        <span class="htag htag-teal">Multi-Source BFS</span>
+        <span class="htag htag-rust">State Space</span>
+        <span class="htag htag-amber">C Language</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="prob-counter">07</div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sb-section">
+      <div class="sb-label">문제 목록</div>
+      <div class="nav-item active" onclick="showP(0)">
+        <span class="nav-num">#1697</span>
+        <span class="nav-title">숨바꼭질</span>
+        <span class="nav-badge" id="b0"></span>
+      </div>
+      <div class="nav-item" onclick="showP(1)">
+        <span class="nav-num">#2583</span>
+        <span class="nav-title">영역 구하기</span>
+        <span class="nav-badge" id="b1"></span>
+      </div>
+      <div class="nav-item" onclick="showP(2)">
+        <span class="nav-num">#2468</span>
+        <span class="nav-title">안전 영역</span>
+        <span class="nav-badge" id="b2"></span>
+      </div>
+      <div class="nav-item" onclick="showP(3)">
+        <span class="nav-num">#5014</span>
+        <span class="nav-title">스타트링크</span>
+        <span class="nav-badge" id="b3"></span>
+      </div>
+      <div class="nav-item" onclick="showP(4)">
+        <span class="nav-num">#7562</span>
+        <span class="nav-title">나이트의 이동</span>
+        <span class="nav-badge" id="b4"></span>
+      </div>
+      <div class="nav-item" onclick="showP(5)">
+        <span class="nav-num">#7576</span>
+        <span class="nav-title">토마토</span>
+        <span class="nav-badge" id="b5"></span>
+      </div>
+      <div class="nav-item" onclick="showP(6)">
+        <span class="nav-num">#1389</span>
+        <span class="nav-title">케빈 베이컨</span>
+        <span class="nav-badge" id="b6"></span>
+      </div>
+    </div>
+    <div class="sb-tip">
+      <strong>// BFS 핵심 패턴</strong><br>
+      연결 요소 세기 · 최단거리 · 다중시작점 · 거리배열 · 격자vs그래프
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="mobile-sel">
+      <select onchange="showP(this.value)">
+        <option value="0">#1697 숨바꼭질</option>
+        <option value="1">#2583 영역 구하기</option>
+        <option value="2">#2468 안전 영역</option>
+        <option value="3">#5014 스타트링크</option>
+        <option value="4">#7562 나이트의 이동</option>
+        <option value="5">#7576 토마토</option>
+        <option value="6">#1389 케빈 베이컨</option>
+      </select>
+    </div>
+
+    <!-- ═══ P0: 숨바꼭질 ═══ -->
+    <div class="prob-panel active" id="p0">
+      <div class="prob-header" data-num="1697">
+        <div class="ph-meta">
+          <span class="ph-badge ph-boj">BOJ 1697</span>
+          <span class="ph-badge ph-cat">상태공간 BFS</span>
+          <span class="ph-badge ph-diff-s">Silver I</span>
+        </div>
+        <h2>숨바꼭질</h2>
+        <p class="prob-desc">현재 위치 N에서 -1, +1, ×2 세 가지 이동으로 동생 K까지 가는 최소 시간을 구하라.</p>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="swT(0,0)">📋 문제</div>
+        <div class="tab" onclick="swT(0,1)">🔍 풀이</div>
+        <div class="tab" onclick="swT(0,2)">💻 코드</div>
+        <div class="tab" onclick="swT(0,3)">🎮 시각화</div>
+        <div class="tab" onclick="swT(0,4)">✏️ 퀴즈</div>
+      </div>
+      <div class="tab-content">
+        <div class="tab-panel active">
+          <div class="slabel">입출력 예제</div>
+          <div class="io-row">
+            <div class="io-box"><div class="io-head">입력</div><pre>5 17</pre></div>
+            <div class="io-box"><div class="io-head">출력</div><pre>4</pre></div>
+          </div>
+          <div class="insight"><strong>// CORE IDEA</strong><br>위치를 정점, 이동을 간선으로 보는 상태공간 BFS. 0~100000까지의 위치가 정점이고 -1/+1/×2 이동이 간선이다. BFS이므로 처음 K에 도달한 시점이 최단 시간.</div>
+          <div class="slabel">최적 경로 예시</div>
+          <div class="io-box"><div class="io-head">5 → 17 (4번)</div><pre>5 → 10 (×2) → 9 (-1) → 18 (×2) → 17 (-1)  총 4번</pre></div>
+        </div>
+        <div class="tab-panel">
+          <div class="steps">
+            <div class="step"><span class="step-n">1</span><div class="step-body"><strong>상태 = 위치:</strong> 각 위치(0~100000)를 BFS 정점으로 취급. visited와 dist 배열 선언.</div></div>
+            <div class="step"><span class="step-n">2</span><div class="step-body"><strong>다음 상태 3가지:</strong> <code>cur-1</code>, <code>cur+1</code>, <code>cur*2</code> — 유효 범위(0~100000) 내에서 미방문이면 큐에 추가.</div></div>
+            <div class="step"><span class="step-n">3</span><div class="step-body"><strong>목표 도달:</strong> <code>cur == k</code>이면 <code>dist[cur]</code>을 출력하고 종료. BFS 특성상 이것이 최단 거리.</div></div>
+            <div class="step"><span class="step-n">4</span><div class="step-body"><strong>시간복잡도:</strong> O(MAX) — MAX=100001. visited로 각 정점은 한 번만 방문.</div></div>
+          </div>
+          <div class="insight"><strong>// WHY BFS</strong><br>DFS는 최단 경로를 보장하지 못한다. 그래프가 1D 숫자 공간이어도 BFS는 "가장 먼저 도달" = "최소 이동"을 보장한다.</div>
+        </div>
+        <div class="tab-panel">
+          <div class="code-wrap">
+            <div class="code-top"><span class="code-lang">C · BOJ 1697</span><button class="copy-btn" onclick="cp(this)">복사</button></div>
+            <pre><span class="pp">#include</span> <span class="st">&lt;stdio.h&gt;</span>
+
+<span class="tp">int</span> visited[<span class="nm">100001</span>];
+<span class="tp">int</span> dist[<span class="nm">100001</span>];
+<span class="tp">int</span> q[<span class="nm">100001</span>];
+
+<span class="tp">int</span> <span class="fn">main</span>() {
+    <span class="tp">int</span> n, k;
+    <span class="fn">scanf</span>(<span class="st">"%d %d"</span>, &amp;n, &amp;k);
+
+    <span class="tp">int</span> front = <span class="nm">0</span>, rear = <span class="nm">0</span>;
+    q[rear++] = n;
+    visited[n] = <span class="nm">1</span>;
+
+    <span class="kw">while</span> (front &lt; rear) {
+        <span class="tp">int</span> cur = q[front++];
+
+        <span class="kw">if</span> (cur == k) {
+            <span class="fn">printf</span>(<span class="st">"%d\n"</span>, dist[cur]);
+            <span class="kw">return</span> <span class="nm">0</span>;
+        }
+
+        <span class="tp">int</span> nexts[<span class="nm">3</span>] = {cur - <span class="nm">1</span>, cur + <span class="nm">1</span>, cur * <span class="nm">2</span>};
+        <span class="kw">for</span> (<span class="tp">int</span> i = <span class="nm">0</span>; i &lt; <span class="nm">3</span>; i++) {
+            <span class="tp">int</span> next = nexts[i];
+            <span class="kw">if</span> (next &lt; <span class="nm">0</span> || next &gt; <span class="nm">100000</span>) <span class="kw">continue</span>;
+            <span class="kw">if</span> (!visited[next]) {
+                visited[next] = <span class="nm">1</span>;
+                dist[next] = dist[cur] + <span class="nm">1</span>;
+                q[rear++] = next;
+            }
+        }
+    }
+    <span class="kw">return</span> <span class="nm">0</span>;
+}</pre>
+          </div>
+        </div>
+        <div class="tab-panel">
+          <div class="vis-wrap">
+            <div class="vis-title">// 1D 상태공간 BFS — 숨바꼭질 (N=5, K=17)</div>
+            <canvas id="c0" width="620" height="260"></canvas>
+            <div class="vis-ctrls">
+              <button class="vbtn primary" onclick="startV0()">▶ 탐색 시작</button>
+              <button class="vbtn" onclick="resetV0()">↺ 초기화</button>
+              <span class="vis-info-bar" id="vi0">dist: 0</span>
+            </div>
+            <div class="vis-log" id="vl0">시작 버튼을 눌러 BFS 탐색을 시뮬레이션하세요.</div>
+          </div>
+        </div>
+        <div class="tab-panel"><div id="qc0"></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ P1: 영역 구하기 ═══ -->
+    <div class="prob-panel" id="p1">
+      <div class="prob-header" data-num="2583">
+        <div class="ph-meta">
+          <span class="ph-badge ph-boj">BOJ 2583</span>
+          <span class="ph-badge ph-cat">격자 BFS</span>
+          <span class="ph-badge ph-diff-s">Silver I</span>
+        </div>
+        <h2>영역 구하기</h2>
+        <p class="prob-desc">직사각형으로 칠해진 부분을 제외한 빈칸 영역의 개수와 각 넓이를 오름차순으로 출력하라.</p>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="swT(1,0)">📋 문제</div>
+        <div class="tab" onclick="swT(1,1)">🔍 풀이</div>
+        <div class="tab" onclick="swT(1,2)">💻 코드</div>
+        <div class="tab" onclick="swT(1,3)">🎮 시각화</div>
+        <div class="tab" onclick="swT(1,4)">✏️ 퀴즈</div>
+      </div>
+      <div class="tab-content">
+        <div class="tab-panel active">
+          <div class="slabel">입출력 예제</div>
+          <div class="io-row">
+            <div class="io-box"><div class="io-head">입력</div><pre>5 7 3
+0 2 4 4
+1 1 2 5
+4 0 6 2</pre></div>
+            <div class="io-box"><div class="io-head">출력</div><pre>3
+1 7 13</pre></div>
+          </div>
+          <div class="insight"><strong>// CORE IDEA</strong><br>직사각형 영역을 1로 채우고, 남은 0인 칸들에서 BFS로 연결 요소를 찾는다. 그림(1926) 문제의 변형으로, "칠해지지 않은 칸"이 대상이다.</div>
+          <div class="warn-box">⚠️ 입력 주의: 직사각형은 (x1,y1)~(x2,y2)로 주어지며, board[y][x] = 1 로 저장해야 행/열이 맞다.</div>
+        </div>
+        <div class="tab-panel">
+          <div class="steps">
+            <div class="step"><span class="step-n">1</span><div class="step-body"><strong>직사각형 칠하기:</strong> 각 직사각형(x1,y1)~(x2,y2)를 board[y][x]=1로 미리 표시. 범위: y∈[y1,y2), x∈[x1,x2).</div></div>
+            <div class="step"><span class="step-n">2</span><div class="step-body"><strong>빈 칸 BFS:</strong> board[i][j]==0이고 미방문이면 BFS 시작. 4방향으로 0인 칸 탐색 → area 카운트.</div></div>
+            <div class="step"><span class="step-n">3</span><div class="step-body"><strong>결과 저장 & 정렬:</strong> ans 배열에 각 BFS의 area 저장 후 <code>qsort</code>로 오름차순 정렬.</div></div>
+            <div class="step"><span class="step-n">4</span><div class="step-body"><strong>출력:</strong> 영역 개수 → 각 넓이를 공백으로 구분 출력.</div></div>
+          </div>
+        </div>
+        <div class="tab-panel">
+          <div class="code-wrap">
+            <div class="code-top"><span class="code-lang">C · BOJ 2583</span><button class="copy-btn" onclick="cp(this)">복사</button></div>
+            <pre><span class="pp">#include</span> <span class="st">&lt;stdio.h&gt;</span>
+<span class="pp">#include</span> <span class="st">&lt;stdlib.h&gt;</span>
+
+<span class="tp">int</span> board[<span class="nm">101</span>][<span class="nm">101</span>];
+<span class="tp">int</span> visited[<span class="nm">101</span>][<span class="nm">101</span>];
+<span class="tp">int</span> qx[<span class="nm">10001</span>], qy[<span class="nm">10001</span>];
+<span class="tp">int</span> ans[<span class="nm">10001</span>];
+<span class="tp">int</span> dx[<span class="nm">4</span>] = {<span class="nm">1</span>, <span class="nm">-1</span>, <span class="nm">0</span>, <span class="nm">0</span>};
+<span class="tp">int</span> dy[<span class="nm">4</span>] = {<span class="nm">0</span>, <span class="nm">0</span>, <span class="nm">1</span>, <span class="nm">-1</span>};
+
+<span class="tp">int</span> <span class="fn">cmp</span>(<span class="kw">const</span> <span class="tp">void</span> *a, <span class="kw">const</span> <span class="tp">void</span> *b) {
+    <span class="kw">return</span> (*(<span class="tp">int</span>*)a - *(<span class="tp">int</span>*)b);
+}
+
+<span class="tp">int</span> <span class="fn">bfs</span>(<span class="tp">int</span> sx, <span class="tp">int</span> sy, <span class="tp">int</span> m, <span class="tp">int</span> n) {
+    <span class="tp">int</span> front = <span class="nm">0</span>, rear = <span class="nm">0</span>;
+    qx[rear] = sx;  qy[rear++] = sy;
+    visited[sx][sy] = <span class="nm">1</span>;
+    <span class="tp">int</span> area = <span class="nm">1</span>;
+
+    <span class="kw">while</span> (front &lt; rear) {
+        <span class="tp">int</span> x = qx[front], y = qy[front++];
+        <span class="kw">for</span> (<span class="tp">int</span> d = <span class="nm">0</span>; d &lt; <span class="nm">4</span>; d++) {
+            <span class="tp">int</span> nx = x + dx[d], ny = y + dy[d];
+            <span class="kw">if</span> (nx &lt; <span class="nm">0</span> || nx &gt;= m || ny &lt; <span class="nm">0</span> || ny &gt;= n) <span class="kw">continue</span>;
+            <span class="kw">if</span> (!visited[nx][ny] &amp;&amp; board[nx][ny] == <span class="nm">0</span>) {
+                visited[nx][ny] = <span class="nm">1</span>;
+                qx[rear] = nx;  qy[rear++] = ny;
+                area++;
+            }
+        }
+    }
+    <span class="kw">return</span> area;
+}
+
+<span class="tp">int</span> <span class="fn">main</span>() {
+    <span class="tp">int</span> m, n, k;
+    <span class="fn">scanf</span>(<span class="st">"%d %d %d"</span>, &amp;m, &amp;n, &amp;k);
+
+    <span class="kw">for</span> (<span class="tp">int</span> i = <span class="nm">0</span>; i &lt; k; i++) {
+        <span class="tp">int</span> x1, y1, x2, y2;
+        <span class="fn">scanf</span>(<span class="st">"%d %d %d %d"</span>, &amp;x1, &amp;y1, &amp;x2, &amp;y2);
+        <span class="kw">for</span> (<span class="tp">int</span> y = y1; y &lt; y2; y++)
+            <span class="kw">for</span> (<span class="tp">int</span> x = x1; x &lt; x2; x++)
+                board[y][x] = <span class="nm">1</span>;
+    }
+
+    <span class="tp">int</span> cnt = <span class="nm">0</span>;
+    <span class="kw">for</span> (<span class="tp">int</span> i = <span class="nm">0</span>; i &lt; m; i++)
+        <span class="kw">for</span> (<span class="tp">int</span> j = <span class="nm">0</span>; j &lt; n; j++)
+            <span class="kw">if</span> (!board[i][j] &amp;&amp; !visited[i][j])
+                ans[cnt++] = <span class="fn">bfs</span>(i, j, m, n);
+
+    <span class="fn">qsort</span>(ans, cnt, <span class="kw">sizeof</span>(<span class="tp">int</span>), cmp);
+    <span class="fn">printf</span>(<span class="st">"%d\n"</span>, cnt);
+    <span class="kw">for</span> (<span class="tp">int</span> i = <span class="nm">0</span>; i &lt; cnt; i++) <span class="fn">printf</span>(<span class="st">"%d "</span>, ans[i]);
+    <span class="fn">printf</span>(<span class="st">"\n"</span>);
+    <span class="kw">return</span> <span class="nm">0</span>;
+}</pre>
+          </div>
+        </div>
+        <div class="tab-panel">
+          <div class="vis-wrap">
+            <div class="vis-title">// 격자 영역 BFS — 직사각형 제외 영역 탐색</div>
+            <canvas id="c1" width="620" height="300"></canvas>
+            <div class="vis-ctrls">
+              <button class="vbtn primary" onclick="startV1()">▶ 영역 탐색</button>
+              <button class="vbtn" onclick="resetV1()">↺ 초기화</button>
+              <span class="vis-info-bar" id="vi1">영역: 0</span>
+            </div>
+            <div class="vis-log" id="vl1">직사각형(1)으로 칠한 뒤, 빈 칸(0)의 영역을 BFS로 찾습니다.</div>
+          </div>
+        </div>
+        <div class="tab-panel"><div id="qc1"></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ P2: 안전 영역 ═══ -->
+    <div class="prob-panel" id="p2">
+      <div class="prob-header" data-num="2468">
+        <div class="ph-meta">
+          <span class="ph-badge ph-boj">BOJ 2468</span>
+          <span class="ph-badge ph-cat">브루트포스+BFS</span>
+          <span class="ph-badge ph-diff-s">Silver I</span>
+        </div>
+        <h2>안전 영역</h2>
+        <p class="prob-desc">물이 h높이까지 찼을 때 잠기지 않는 안전 영역의 최대 개수를 구하라.</p>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="swT(2,0)">📋 문제</div>
+        <div class="tab" onclick="swT(2,1)">🔍 풀이</div>
+        <div class="tab" onclick="swT(2,2)">💻 코드</div>
+        <div class="tab" onclick="swT(2,3)">🎮 시각화</div>
+        <div class="tab" onclick="swT(2,4)">✏️ 퀴즈</div>
+      </div>
+      <div class="tab-content">
+        <div class="tab-panel active">
+          <div class="slabel">입출력 예제</div>
+          <div class="io-row">
+            <div class="io-box"><div class="io-head">입력</div><pre>5
+6 8 2 6 2
+3 2 3 4 6
+6 7 3 3 2
+7 2 5 3 6
+8 9 5 2 7</pre></div>
+            <div class="io-box"><div class="io-head">출력</div><pre>5</pre></div>
+          </div>
+          <div class="insight"><strong>// CORE IDEA</strong><br>높이 h를 1부터 max까지 변경하며 매번 BFS로 연결 요소를 세는 브루트포스. 각 h에서 arr[i][j] &gt; h인 칸만 탐색하면 안전 영역 개수가 나온다.</div>
+        </div>
+        <div class="tab-panel">
+          <div class="steps">
+            <div class="step"><span class="step-n">1</span><div class="step-body"><strong>최대 높이 파악:</strong> 입력 받으면서 maxH를 갱신. 높이 범위: 1~maxH.</div></div>
+            <div class="step"><span class="step-n">2</span><div class="step-body"><strong>높이별 시뮬레이션:</strong> h를 1부터 maxH까지 반복. 매번 <code>memset(visited, 0, ...)</code>으로 초기화.</div></div>
+            <div class="step"><span class="step-n">3</span><div class="step-body"><strong>BFS 조건 변경:</strong> 일반 BFS와 달리 <code>arr[nx][ny] &gt; h</code>인 칸만 탐색 (물에 잠기지 않은 칸).</div></div>
+            <div class="step"><span class="step-n">4</span><div class="step-body"><strong>최대값 갱신:</strong> 각 h에서의 cnt를 answer와 비교하며 최댓값 유지.</div></div>
+          </div>
+          <div class="insight"><strong>// WHY BRUTE FORCE</strong><br>N≤100이므로 높이 수(최대 100) × BFS O(N²) = O(N³) = 100³ = 백만 — 충분히 빠름.</div>
+        </div>
+        <div class="tab-panel">
+          <div class="code-wrap">
+            <div class="code-top"><span class="code-lang">C · BOJ 2468</span><button class="copy-btn" onclick="cp(this)">복사</button></div>
+            <pre><span class="pp">#include</span> <span class="st">&lt;stdio.h&gt;</span>
+<span class="pp">#include</span> <span class="st">&lt;string.h&gt;</span>
+
+<span class="tp">int</span> n;
+<span class="tp">int</span> arr[<span class="nm">101</span>][<span class="nm">101</span>];
+<span class="tp">int</span> visited[<span class="nm">101</span>][<span class="nm">101</span>];
+<span class="tp">int</span> qx[<span class="nm">10001</span>], qy[<span class="nm">10001</span>];
+<span class="tp">int</span> dx[<span class="nm">4</span>] = {<span class="nm">1</span>, <span class="nm">-1</span>, <span class="nm">0</span>, <span class="nm">0</span>};
+<span class="tp">int</span> dy[<span class="nm">4</span>] = {<span class="nm">0</span>, <span class="nm">0</span>, <span class="nm">1</span>, <span class="nm">-1</span>};
+
+<span class="tp">void</span> <span class="fn">bfs</span>(<span class="tp">int</span> sx, <span class="tp">int</span> sy, <span class="tp">int</span> h) {
+    <span class="tp">int</span> front = <span class="nm">0</span>, rear = <span class="nm">0</span>;
+    qx[rear] = sx;  qy[rear++] = sy;
+    visited[sx][sy] = <span class="nm">1</span>;
+
+    <span class="kw">while</span> (front &lt; rear) {
+        <span class="tp">int</span> x = qx[front], y = qy[front++];
+        <span class="kw">for</span> (<span class="tp">int</span> d = <span class="nm">0</span>; d &lt; <span class="nm">4</span>; d++) {
+            <span class="tp">int</span> nx = x + dx[d], ny = y + dy[d];
+            <span class="kw">if</span> (nx &lt; <span class="nm">0</span> || nx &gt;= n || ny &lt; <span class="nm">0</span> || ny &gt;= n) <span class="kw">continue</span>;
+            <span class="kw">if</span> (!visited[nx][ny] &amp;&amp; arr[nx][ny] &gt; h) {  <span class="cm">// 잠기지 않은 칸</span>
+                visited[nx][ny] = <span class="nm">1</span>;
+                qx[rear] = nx;  qy[rear++] = ny;
+            }
+        }
+    }
+}
+
+<span class="tp">int</span> <span class="fn">main</span>() {
+    <span class="fn">scanf</span>(<span class="st">"%d"</span>, &amp;n);
+    <span class="tp">int</span> maxH = <span class="nm">0</span>;
+    <span class="kw">for</span> (<span class="tp">int</span> i = <span class="nm">0</span>; i &lt; n; i++)
+        <span class="kw">for</span> (<span class="tp">int</span> j = <span class="nm">0</span>; j &lt; n; j++) {
+            <span class="fn">scanf</span>(<span class="st">"%d"</span>, &amp;arr[i][j]);
+            <span class="kw">if</span> (arr[i][j] &gt; maxH) maxH = arr[i][j];
+        }
+
+    <span class="tp">int</span> answer = <span class="nm">1</span>;
+    <span class="kw">for</span> (<span class="tp">int</span> h = <span class="nm">1</span>; h &lt;= maxH; h++) {
+        <span class="fn">memset</span>(visited, <span class="nm">0</span>, <span class="kw">sizeof</span>(visited));
+        <span class="tp">int</span> cnt = <span class="nm">0</span>;
+        <span class="kw">for</span> (<span class="tp">int</span> i = <span class="nm">0</span>; i &lt; n; i++)
+            <span class="kw">for</span> (<span class="tp">int</span> j = <span class="nm">0</span>; j &lt; n; j++)
+                <span class="kw">if</span> (arr[i][j] &gt; h &amp;&amp; !visited[i][j]) {
+                    <span class="fn">bfs</span>(i, j, h);
+                    cnt++;
+                }
+        <span class="kw">if</span> (cnt &gt; answer) answer = cnt;
+    }
+    <span class="fn">printf</span>(<span class="st">"%d\n"</span>, answer);
+    <span class="kw">return</span> <span class="nm">0</span>;
+}</pre>
+          </div>
+        </div>
+        <div class="tab-panel">
+          <div class="vis-wrap">
+            <div class="vis-title">// 수위별 안전 영역 — 브루트포스 BFS</div>
+            <canvas id="c2" width="620" height="300"></canvas>
+            <div class="vis-ctrls">
+              <button class="vbtn primary" onclick="startV2()">▶ 시뮬레이션</button>
+              <button class="vbtn" onclick="resetV2()">↺ 초기화</button>
+              <span class="vis-info-bar" id="vi2">수위: 0 | 안전: 0</span>
+            </div>
+            <div class="vis-log" id="vl2">수위를 높여가며 안전 영역 수가 변하는 모습을 봅니다.</div>
+          </div>
+        </div>
+        <div class="tab-panel"><div id="qc2"></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ P3: 스타트링크 ═══ -->
+    <div class="prob-panel" id="p3">
+      <div class="prob-header" data-num="5014">
+        <div class="ph-meta">
+          <span class="ph-badge ph-boj">BOJ 5014</span>
+          <span class="ph-badge ph-cat">1D BFS</span>
+          <span class="ph-badge ph-diff-s">Silver I</span>
+        </div>
+        <h2>스타트링크</h2>
+        <p class="prob-desc">U층 올라가기, D층 내려가기 버튼만 사용해 S층에서 G층까지 최소 버튼 횟수를 구하라. 불가능하면 "use the stairs".</p>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="swT(3,0)">📋 문제</div>
+        <div class="tab" onclick="swT(3,1)">🔍 풀이</div>
+        <div class="tab" onclick="swT(3,2)">💻 코드</div>
+        <div class="tab" onclick="swT(3,3)">🎮 시각화</div>
+        <div class="tab" onclick="swT(3,4)">✏️ 퀴즈</div>
+      </div>
+      <div class="tab-content">
+        <div class="tab-panel active">
+          <div class="slabel">입출력 예제</div>
+          <div class="io-row">
+            <div class="io-box"><div class="io-head">입력 (F S G U D)</div><pre>10 1 10 2 1</pre></div>
+            <div class="io-box"><div class="io-head">출력</div><pre>6</pre></div>
+          </div>
+          <div class="insight"><strong>// CORE IDEA</strong><br>숨바꼭질과 동일한 1D BFS 패턴. 이동이 +U, -D 두 가지뿐이라 더 단순. 층 범위 1~F를 벗어나면 continue.</div>
+          <div class="key-box">
+            <div class="key-item"><div class="key-item-title">F=10, S=1, G=10</div><div class="key-item-val">1→3→5→7→9→8→10 = 6번</div></div>
+            <div class="key-item"><div class="key-item-title">도달 불가 조건</div><div class="key-item-val">BFS 큐가 비어도 G에 도달 못하면 "use the stairs"</div></div>
+          </div>
+        </div>
+        <div class="tab-panel">
+          <div class="steps">
+            <div class="step"><span class="step-n">1</span><div class="step-body"><strong>상태 = 층:</strong> 각 층(1~F)이 정점. S에서 BFS 시작.</div></div>
+            <div class="step"><span class="step-n">2</span><div class="step-body"><strong>이동 2가지:</strong> <code>up = cur + U</code>, <code>down = cur - D</code>. up ≤ F이고 미방문이면 큐 추가. down ≥ 1이고 미방문이면 큐 추가.</div></div>
+            <div class="step"><span class="step-n">3</span><div class="step-body"><strong>목표 도달:</strong> cur == G이면 dist[cur] 출력 후 종료.</div></div>
+            <div class="step"><span class="step-n">4</span><div class="step-body"><strong>도달 불가:</strong> while 루프가 끝날 때까지 G에 못 가면 "use the stairs" 출력.</div></div>
+          </div>
+        </div>
+        <div class="tab-panel">
+          <div class="code-wrap">
+            <div class="code-top"><span class="code-lang">C · BOJ 5014</span><button class="copy-btn" onclick="cp(this)">복사</button></div>
+            <pre><span class="pp">#include</span> <span class="st">&lt;stdio.h&gt;</span>
+
+<span class="tp">int</span> visited[<span class="nm">1000001</span>];
+<span class="tp">int</span> dist[<span class="nm">1000001</span>];
+<span class="tp">int</span> q[<span class="nm">1000001</span>];
+
+<span class="tp">int</span> <span class="fn">main</span>() {
+    <span class="tp">int</span> F, S, G, U, D;
+    <span class="fn">scanf</span>(<span class="st">"%d %d %d %d %d"</span>, &amp;F, &amp;S, &amp;G, &amp;U, &amp;D);
+
+    <span class="tp">int</span> front = <span class="nm">0</span>, rear = <span class="nm">0</span>;
+    q[rear++] = S;
+    visited[S] = <span class="nm">1</span>;
+
+    <span class="kw">while</span> (front &lt; rear) {
+        <span class="tp">int</span> cur = q[front++];
+        <span class="kw">if</span> (cur == G) {
+            <span class="fn">printf</span>(<span class="st">"%d\n"</span>, dist[cur]);
+            <span class="kw">return</span> <span class="nm">0</span>;
+        }
+
+        <span class="tp">int</span> up = cur + U;
+        <span class="tp">int</span> down = cur - D;
+
+        <span class="kw">if</span> (up &lt;= F &amp;&amp; !visited[up]) {
+            visited[up] = <span class="nm">1</span>;
+            dist[up] = dist[cur] + <span class="nm">1</span>;
+            q[rear++] = up;
+        }
+        <span class="kw">if</span> (down &gt;= <span class="nm">1</span> &amp;&amp; !visited[down]) {
+            visited[down] = <span class="nm">1</span>;
+            dist[down] = dist[cur] + <span class="nm">1</span>;
+            q[rear++] = down;
+        }
+    }
+
+    <span class="fn">printf</span>(<span class="st">"use the stairs\n"</span>);
+    <span class="kw">return</span> <span class="nm">0</span>;
+}</pre>
+          </div>
+        </div>
+        <div class="tab-panel">
+          <div class="vis-wrap">
+            <div class="vis-title">// 엘리베이터 BFS — F=10, S=1, G=10, U=2, D=1</div>
+            <canvas id="c3" width="620" height="280"></canvas>
+            <div class="vis-ctrls">
+              <button class="vbtn primary" onclick="startV3()">▶ 탐색 시작</button>
+              <button class="vbtn" onclick="resetV3()">↺ 초기화</button>
+              <span class="vis-info-bar" id="vi3">버튼: 0회</span>
+            </div>
+            <div class="vis-log" id="vl3">엘리베이터 BFS — 최소 버튼 횟수를 찾습니다.</div>
+          </div>
+        </div>
+        <div class="tab-panel"><div id="qc3"></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ P4: 나이트의 이동 ═══ -->
+    <div class="prob-panel" id="p4">
+      <div class="prob-header" data-num="7562">
+        <div class="ph-meta">
+          <span class="ph-badge ph-boj">BOJ 7562</span>
+          <span class="ph-badge ph-cat">격자 BFS · 8방향</span>
+          <span class="ph-badge ph-diff-s">Silver I</span>
+        </div>
+        <h2>나이트의 이동</h2>
+        <p class="prob-desc">체스판에서 나이트가 출발점에서 목표점까지 최소 몇 번 이동하는지 구하라.</p>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="swT(4,0)">📋 문제</div>
+        <div class="tab" onclick="swT(4,1)">🔍 풀이</div>
+        <div class="tab" onclick="swT(4,2)">💻 코드</div>
+        <div class="tab" onclick="swT(4,3)">🎮 시각화</div>
+        <div class="tab" onclick="swT(4,4)">✏️ 퀴즈</div>
+      </div>
+      <div class="tab-content">
+        <div class="tab-panel active">
+          <div class="slabel">입출력 예제</div>
+          <div class="io-row">
+            <div class="io-box"><div class="io-head">입력</div><pre>3
+8
+0 0
+7 0
+100
+0 0
+30 50
+10
+1 1
+1 1</pre></div>
+            <div class="io-box"><div class="io-head">출력</div><pre>5
+28
+0</pre></div>
+          </div>
+          <div class="insight"><strong>// CORE IDEA</strong><br>나이트의 8가지 L자 이동을 dx/dy 배열로 표현. 미로 BFS와 동일 구조, 이동 방향만 8가지. 테스트케이스마다 memset 필수!</div>
+        </div>
+        <div class="tab-panel">
+          <div class="steps">
+            <div class="step"><span class="step-n">1</span><div class="step-body"><strong>나이트 이동 8방향:</strong> dx = {-2,-2,-1,-1,1,1,2,2}, dy = {-1,1,-2,2,-2,2,-1,1}</div></div>
+            <div class="step"><span class="step-n">2</span><div class="step-body"><strong>초기화 필수:</strong> 테스트케이스마다 <code>memset(visited, 0, ...)</code>, <code>memset(dist, 0, ...)</code>.</div></div>
+            <div class="step"><span class="step-n">3</span><div class="step-body"><strong>BFS 탐색:</strong> 시작점에서 BFS. 범위 0~l-1 내이고 미방문인 칸에 dist 갱신.</div></div>
+            <div class="step"><span class="step-n">4</span><div class="step-body"><strong>시작=목표:</strong> sx==ex && sy==ey이면 dist=0 즉시 출력.</div></div>
+          </div>
+        </div>
+        <div class="tab-panel">
+          <div class="code-wrap">
+            <div class="code-top"><span class="code-lang">C · BOJ 7562</span><button class="copy-btn" onclick="cp(this)">복사</button></div>
+            <pre><span class="pp">#include</span> <span class="st">&lt;stdio.h&gt;</span>
+<span class="pp">#include</span> <span class="st">&lt;string.h&gt;</span>
+
+<span class="tp">int</span> visited[<span class="nm">301</span>][<span class="nm">301</span>];
+<span class="tp">int</span> dist[<span class="nm">301</span>][<span class="nm">301</span>];
+<span class="tp">int</span> qx[<span class="nm">90001</span>], qy[<span class="nm">90001</span>];
+<span class="tp">int</span> dx[<span class="nm">8</span>] = {<span class="nm">-2</span>,<span class="nm">-2</span>,<span class="nm">-1</span>,<span class="nm">-1</span>,<span class="nm">1</span>,<span class="nm">1</span>,<span class="nm">2</span>,<span class="nm">2</span>};
+<span class="tp">int</span> dy[<span class="nm">8</span>] = {<span class="nm">-1</span>,<span class="nm">1</span>,<span class="nm">-2</span>,<span class="nm">2</span>,<span class="nm">-2</span>,<span class="nm">2</span>,<span class="nm">-1</span>,<span class="nm">1</span>};
+
+<span class="tp">int</span> <span class="fn">main</span>() {
+    <span class="tp">int</span> T;
+    <span class="fn">scanf</span>(<span class="st">"%d"</span>, &amp;T);
+
+    <span class="kw">while</span> (T--) {
+        <span class="tp">int</span> l, sx, sy, ex, ey;
+        <span class="fn">scanf</span>(<span class="st">"%d"</span>, &amp;l);
+        <span class="fn">scanf</span>(<span class="st">"%d %d"</span>, &amp;sx, &amp;sy);
+        <span class="fn">scanf</span>(<span class="st">"%d %d"</span>, &amp;ex, &amp;ey);
+
+        <span class="fn">memset</span>(visited, <span class="nm">0</span>, <span class="kw">sizeof</span>(visited));
+        <span class="fn">memset</span>(dist, <span class="nm">0</span>, <span class="kw">sizeof</span>(dist));
+
+        <span class="tp">int</span> front = <span class="nm">0</span>, rear = <span class="nm">0</span>;
+        qx[rear] = sx;  qy[rear++] = sy;
+        visited[sx][sy] = <span class="nm">1</span>;
+
+        <span class="kw">while</span> (front &lt; rear) {
+            <span class="tp">int</span> x = qx[front], y = qy[front++];
+            <span class="kw">if</span> (x == ex &amp;&amp; y == ey) <span class="kw">break</span>;
+
+            <span class="kw">for</span> (<span class="tp">int</span> d = <span class="nm">0</span>; d &lt; <span class="nm">8</span>; d++) {
+                <span class="tp">int</span> nx = x + dx[d], ny = y + dy[d];
+                <span class="kw">if</span> (nx &lt; <span class="nm">0</span> || nx &gt;= l || ny &lt; <span class="nm">0</span> || ny &gt;= l) <span class="kw">continue</span>;
+                <span class="kw">if</span> (!visited[nx][ny]) {
+                    visited[nx][ny] = <span class="nm">1</span>;
+                    dist[nx][ny] = dist[x][y] + <span class="nm">1</span>;
+                    qx[rear] = nx;  qy[rear++] = ny;
+                }
+            }
+        }
+        <span class="fn">printf</span>(<span class="st">"%d\n"</span>, dist[ex][ey]);
+    }
+    <span class="kw">return</span> <span class="nm">0</span>;
+}</pre>
+          </div>
+        </div>
+        <div class="tab-panel">
+          <div class="vis-wrap">
+            <div class="vis-title">// 나이트 이동 BFS — 8×8 체스판 (0,0) → (7,0)</div>
+            <canvas id="c4" width="620" height="300"></canvas>
+            <div class="vis-ctrls">
+              <button class="vbtn primary" onclick="startV4()">▶ 나이트 이동</button>
+              <button class="vbtn" onclick="resetV4()">↺ 초기화</button>
+              <span class="vis-info-bar" id="vi4">이동: 0회</span>
+            </div>
+            <div class="vis-log" id="vl4">체스판에서 나이트의 최단 경로를 BFS로 찾습니다.</div>
+          </div>
+        </div>
+        <div class="tab-panel"><div id="qc4"></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ P5: 토마토 ═══ -->
+    <div class="prob-panel" id="p5">
+      <div class="prob-header" data-num="7576">
+        <div class="ph-meta">
+          <span class="ph-badge ph-boj">BOJ 7576</span>
+          <span class="ph-badge ph-cat">다중시작점 BFS</span>
+          <span class="ph-badge ph-diff-g">Gold V</span>
+        </div>
+        <h2>토마토</h2>
+        <p class="prob-desc">여러 익은 토마토에서 동시에 퍼져나가 모든 토마토가 익는 최소 날짜를 구하라. 불가능하면 -1.</p>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="swT(5,0)">📋 문제</div>
+        <div class="tab" onclick="swT(5,1)">🔍 풀이</div>
+        <div class="tab" onclick="swT(5,2)">💻 코드</div>
+        <div class="tab" onclick="swT(5,3)">🎮 시각화</div>
+        <div class="tab" onclick="swT(5,4)">✏️ 퀴즈</div>
+      </div>
+      <div class="tab-content">
+        <div class="tab-panel active">
+          <div class="slabel">입출력 예제</div>
+          <div class="io-row">
+            <div class="io-box"><div class="io-head">입력</div><pre>6 4
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+0 0 0 0 0 1</pre></div>
+            <div class="io-box"><div class="io-head">출력</div><pre>8</pre></div>
+          </div>
+          <div class="insight"><strong>// MULTI-SOURCE BFS</strong><br>시작점이 하나가 아니라 여러 개! 처음부터 익은 토마토(1) 전부를 큐에 넣고 BFS 시작. 마치 "동시에 퍼져나가는" 효과를 낸다.</div>
+          <div class="warn-box">⚠️ 정답: 마지막에 박스 전체를 순회해 0이 남아 있으면 -1. 그렇지 않으면 최대값 - 1 (시작이 1이므로).</div>
+        </div>
+        <div class="tab-panel">
+          <div class="steps">
+            <div class="step"><span class="step-n">1</span><div class="step-body"><strong>다중 시작점:</strong> 입력 받으면서 box[i][j]==1인 칸을 전부 큐에 넣는다. 이것이 핵심!</div></div>
+            <div class="step"><span class="step-n">2</span><div class="step-body"><strong>BFS 실행:</strong> box 값이 날짜 역할. box[nx][ny] = box[x][y] + 1로 인접 칸 갱신. 0인 칸만 탐색.</div></div>
+            <div class="step"><span class="step-n">3</span><div class="step-body"><strong>불가능 판단:</strong> BFS 후 0이 남아 있으면 -1. (격리된 공간 존재)</div></div>
+            <div class="step"><span class="step-n">4</span><div class="step-body"><strong>정답:</strong> 박스 전체 최대값 - 1. (시작값이 1이므로 1일이 아닌 0일에 이미 익어있는 상태)</div></div>
+          </div>
+        </div>
+        <div class="tab-panel">
+          <div class="code-wrap">
+            <div class="code-top"><span class="code-lang">C · BOJ 7576</span><button class="copy-btn" onclick="cp(this)">복사</button></div>
+            <pre><span class="pp">#include</span> <span class="st">&lt;stdio.h&gt;</span>
+
+<span class="tp">int</span> box[<span class="nm">1001</span>][<span class="nm">1001</span>];
+<span class="tp">int</span> qx[<span class="nm">1000001</span>], qy[<span class="nm">1000001</span>];
+<span class="tp">int</span> dx[<span class="nm">4</span>] = {<span class="nm">1</span>, <span class="nm">-1</span>, <span class="nm">0</span>, <span class="nm">0</span>};
+<span class="tp">int</span> dy[<span class="nm">4</span>] = {<span class="nm">0</span>, <span class="nm">0</span>, <span class="nm">1</span>, <span class="nm">-1</span>};
+
+<span class="tp">int</span> <span class="fn">main</span>() {
+    <span class="tp">int</span> m, n;
+    <span class="fn">scanf</span>(<span class="st">"%d %d"</span>, &amp;m, &amp;n);
+
+    <span class="tp">int</span> front = <span class="nm">0</span>, rear = <span class="nm">0</span>;
+
+    <span class="kw">for</span> (<span class="tp">int</span> i = <span class="nm">0</span>; i &lt; n; i++)
+        <span class="kw">for</span> (<span class="tp">int</span> j = <span class="nm">0</span>; j &lt; m; j++) {
+            <span class="fn">scanf</span>(<span class="st">"%d"</span>, &amp;box[i][j]);
+            <span class="kw">if</span> (box[i][j] == <span class="nm">1</span>) {    <span class="cm">// 익은 토마토 전부 큐에!</span>
+                qx[rear] = i;
+                qy[rear++] = j;
+            }
+        }
+
+    <span class="kw">while</span> (front &lt; rear) {
+        <span class="tp">int</span> x = qx[front], y = qy[front++];
+        <span class="kw">for</span> (<span class="tp">int</span> d = <span class="nm">0</span>; d &lt; <span class="nm">4</span>; d++) {
+            <span class="tp">int</span> nx = x + dx[d], ny = y + dy[d];
+            <span class="kw">if</span> (nx &lt; <span class="nm">0</span> || nx &gt;= n || ny &lt; <span class="nm">0</span> || ny &gt;= m) <span class="kw">continue</span>;
+            <span class="kw">if</span> (box[nx][ny] == <span class="nm">0</span>) {
+                box[nx][ny] = box[x][y] + <span class="nm">1</span>;
+                qx[rear] = nx;  qy[rear++] = ny;
+            }
+        }
+    }
+
+    <span class="tp">int</span> answer = <span class="nm">0</span>;
+    <span class="kw">for</span> (<span class="tp">int</span> i = <span class="nm">0</span>; i &lt; n; i++)
+        <span class="kw">for</span> (<span class="tp">int</span> j = <span class="nm">0</span>; j &lt; m; j++) {
+            <span class="kw">if</span> (box[i][j] == <span class="nm">0</span>) { <span class="fn">printf</span>(<span class="st">"-1\n"</span>); <span class="kw">return</span> <span class="nm">0</span>; }
+            <span class="kw">if</span> (box[i][j] &gt; answer) answer = box[i][j];
+        }
+
+    <span class="fn">printf</span>(<span class="st">"%d\n"</span>, answer - <span class="nm">1</span>);   <span class="cm">// 시작값 1이므로 -1</span>
+    <span class="kw">return</span> <span class="nm">0</span>;
+}</pre>
+          </div>
+        </div>
+        <div class="tab-panel">
+          <div class="vis-wrap">
+            <div class="vis-title">// 다중시작점 BFS — 토마토 익어가기</div>
+            <canvas id="c5" width="620" height="280"></canvas>
+            <div class="vis-ctrls">
+              <button class="vbtn primary" onclick="startV5()">▶ 토마토 퍼지기</button>
+              <button class="vbtn" onclick="resetV5()">↺ 초기화</button>
+              <span class="vis-info-bar" id="vi5">일수: 0</span>
+            </div>
+            <div class="vis-log" id="vl5">여러 익은 토마토에서 동시에 BFS가 퍼져나갑니다.</div>
+          </div>
+        </div>
+        <div class="tab-panel"><div id="qc5"></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ P6: 케빈 베이컨 ═══ -->
+    <div class="prob-panel" id="p6">
+      <div class="prob-header" data-num="1389">
+        <div class="ph-meta">
+          <span class="ph-badge ph-boj">BOJ 1389</span>
+          <span class="ph-badge ph-cat">전체 BFS</span>
+          <span class="ph-badge ph-diff-s">Silver I</span>
+        </div>
+        <h2>케빈 베이컨의 6단계 법칙</h2>
+        <p class="prob-desc">모든 사람과의 최단 친구 거리 합(케빈 베이컨 수)이 가장 작은 사람을 구하라.</p>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="swT(6,0)">📋 문제</div>
+        <div class="tab" onclick="swT(6,1)">🔍 풀이</div>
+        <div class="tab" onclick="swT(6,2)">💻 코드</div>
+        <div class="tab" onclick="swT(6,3)">🎮 시각화</div>
+        <div class="tab" onclick="swT(6,4)">✏️ 퀴즈</div>
+      </div>
+      <div class="tab-content">
+        <div class="tab-panel active">
+          <div class="slabel">입출력 예제</div>
+          <div class="io-row">
+            <div class="io-box"><div class="io-head">입력</div><pre>5 5
+1 3
+1 4
+4 5
+4 3
+3 2</pre></div>
+            <div class="io-box"><div class="io-head">출력</div><pre>3</pre></div>
+          </div>
+          <div class="insight"><strong>// CORE IDEA</strong><br>N명 각각에서 BFS를 실행해 나머지 N-1명까지의 거리 합을 구한다. 합이 최소인 사람이 정답. O(N × (N+M)).</div>
+        </div>
+        <div class="tab-panel">
+          <div class="steps">
+            <div class="step"><span class="step-n">1</span><div class="step-body"><strong>인접 행렬 구성:</strong> graph[a][b] = graph[b][a] = 1로 무방향 그래프 저장.</div></div>
+            <div class="step"><span class="step-n">2</span><div class="step-body"><strong>각 정점에서 BFS:</strong> 1부터 N까지 모든 정점을 시작점으로 BFS 실행. 매번 memset으로 초기화.</div></div>
+            <div class="step"><span class="step-n">3</span><div class="step-body"><strong>거리 합 계산:</strong> BFS 후 dist[1..n]의 합이 그 사람의 케빈 베이컨 수.</div></div>
+            <div class="step"><span class="step-n">4</span><div class="step-body"><strong>최솟값 추적:</strong> bestValue보다 작은 sum이면 bestPerson 갱신.</div></div>
+          </div>
+          <div class="key-box">
+            <div class="key-item"><div class="key-item-title">3번의 거리 합</div><div class="key-item-val">3→1:1, 3→2:1, 3→4:1, 3→5:2 → 합=5</div></div>
+            <div class="key-item"><div class="key-item-title">최솟값 → 정답</div><div class="key-item-val">3번이 케빈 베이컨 수가 가장 작음</div></div>
+          </div>
+        </div>
+        <div class="tab-panel">
+          <div class="code-wrap">
+            <div class="code-top"><span class="code-lang">C · BOJ 1389</span><button class="copy-btn" onclick="cp(this)">복사</button></div>
+            <pre><span class="pp">#include</span> <span class="st">&lt;stdio.h&gt;</span>
+<span class="pp">#include</span> <span class="st">&lt;string.h&gt;</span>
+
+<span class="tp">int</span> graph[<span class="nm">101</span>][<span class="nm">101</span>];
+<span class="tp">int</span> visited[<span class="nm">101</span>];
+<span class="tp">int</span> dist[<span class="nm">101</span>];
+<span class="tp">int</span> q[<span class="nm">101</span>];
+<span class="tp">int</span> n, m;
+
+<span class="tp">int</span> <span class="fn">bfs</span>(<span class="tp">int</span> start) {
+    <span class="fn">memset</span>(visited, <span class="nm">0</span>, <span class="kw">sizeof</span>(visited));
+    <span class="fn">memset</span>(dist, <span class="nm">0</span>, <span class="kw">sizeof</span>(dist));
+
+    <span class="tp">int</span> front = <span class="nm">0</span>, rear = <span class="nm">0</span>;
+    q[rear++] = start;
+    visited[start] = <span class="nm">1</span>;
+
+    <span class="kw">while</span> (front &lt; rear) {
+        <span class="tp">int</span> cur = q[front++];
+        <span class="kw">for</span> (<span class="tp">int</span> next = <span class="nm">1</span>; next &lt;= n; next++) {
+            <span class="kw">if</span> (graph[cur][next] &amp;&amp; !visited[next]) {
+                visited[next] = <span class="nm">1</span>;
+                dist[next] = dist[cur] + <span class="nm">1</span>;
+                q[rear++] = next;
+            }
+        }
+    }
+
+    <span class="tp">int</span> sum = <span class="nm">0</span>;
+    <span class="kw">for</span> (<span class="tp">int</span> i = <span class="nm">1</span>; i &lt;= n; i++) sum += dist[i];
+    <span class="kw">return</span> sum;
+}
+
+<span class="tp">int</span> <span class="fn">main</span>() {
+    <span class="fn">scanf</span>(<span class="st">"%d %d"</span>, &amp;n, &amp;m);
+    <span class="kw">for</span> (<span class="tp">int</span> i = <span class="nm">0</span>; i &lt; m; i++) {
+        <span class="tp">int</span> a, b;
+        <span class="fn">scanf</span>(<span class="st">"%d %d"</span>, &amp;a, &amp;b);
+        graph[a][b] = <span class="nm">1</span>;
+        graph[b][a] = <span class="nm">1</span>;
+    }
+
+    <span class="tp">int</span> bestPerson = <span class="nm">1</span>, bestValue = <span class="nm">1000000000</span>;
+    <span class="kw">for</span> (<span class="tp">int</span> i = <span class="nm">1</span>; i &lt;= n; i++) {
+        <span class="tp">int</span> sum = <span class="fn">bfs</span>(i);
+        <span class="kw">if</span> (sum &lt; bestValue) {
+            bestValue = sum;
+            bestPerson = i;
+        }
+    }
+
+    <span class="fn">printf</span>(<span class="st">"%d\n"</span>, bestPerson);
+    <span class="kw">return</span> <span class="nm">0</span>;
+}</pre>
+          </div>
+        </div>
+        <div class="tab-panel">
+          <div class="vis-wrap">
+            <div class="vis-title">// 케빈 베이컨 — 전체 정점 BFS</div>
+            <canvas id="c6" width="620" height="280"></canvas>
+            <div class="vis-ctrls">
+              <button class="vbtn primary" onclick="startV6()">▶ BFS 시작</button>
+              <button class="vbtn" onclick="nextV6()">▷ 다음 정점</button>
+              <button class="vbtn" onclick="resetV6()">↺ 초기화</button>
+              <span class="vis-info-bar" id="vi6">현재: - | 합: -</span>
+            </div>
+            <div class="vis-log" id="vl6">각 정점에서 BFS를 실행해 거리 합을 구합니다.</div>
+          </div>
+        </div>
+        <div class="tab-panel"><div id="qc6"></div></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════
+function showP(idx) {
+  idx = parseInt(idx);
+  document.querySelectorAll('.prob-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('p' + idx).classList.add('active');
+  document.querySelectorAll('.nav-item')[idx].classList.add('active');
+}
+
+function swT(pi, ti) {
+  const panel = document.getElementById('p' + pi);
+  panel.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===ti));
+  panel.querySelectorAll('.tab-panel').forEach((p,i) => p.classList.toggle('active', i===ti));
+  if (ti === 4) initQ(pi);
+}
+
+function cp(btn) {
+  const text = btn.closest('.code-wrap').querySelector('pre').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ 복사됨';
+    setTimeout(() => btn.textContent = '복사', 2000);
+  });
+}
+
+// ══════════════════════════════════════
+// QUIZ DATA
+// ══════════════════════════════════════
+const QD = [
+  // 0: 숨바꼭질
+  [
+    { q: "숨바꼭질에서 N=5, K=17일 때 최소 이동 횟수는?", opts:["3","4","5","6"], a:1, ex:"5→10(×2)→9(-1)→18(×2)→17(-1) = 4번이 최단." },
+    { q: "상태공간 BFS에서 '상태'는 무엇인가요?", opts:["방문 여부","현재 위치","이동 수단","시간"], a:1, ex:"각 위치(0~100000)가 BFS의 정점(상태)이 됩니다." },
+    { q: "cur * 2 이동이 추가되면 BFS와 DFS 중 어느 것이 더 적합한가요?", opts:["DFS","BFS","둘 다 동일","상황에 따라"], a:1, ex:"최단 경로를 보장하려면 BFS. DFS는 최단을 보장 못합니다." }
+  ],
+  // 1: 영역 구하기
+  [
+    { q: "예제에서 영역의 수는?", opts:["1","2","3","4"], a:2, ex:"BFS가 3번 실행됩니다 — 넓이 1, 7, 13인 영역 3개." },
+    { q: "직사각형을 board에 칠할 때 board[y][x]=1과 board[x][y]=1 중 맞는 것은?", opts:["board[y][x]=1","board[x][y]=1","둘 다 맞다","문제마다 다르다"], a:0, ex:"입력 좌표에서 첫 번째는 x(열), 두 번째는 y(행). 배열은 행이 먼저이므로 board[y][x]." },
+    { q: "영역 넓이를 오름차순으로 출력하기 위해 사용하는 함수는?", opts:["sort","qsort","bubble_sort","std::sort"], a:1, ex:"C 표준 라이브러리의 qsort를 비교 함수와 함께 사용합니다." }
+  ],
+  // 2: 안전 영역
+  [
+    { q: "안전 영역 문제에서 h=0일 때를 시뮬레이션하지 않는 이유는?", opts:["h=0이면 모두 잠기므로","h=0이면 영역 = 1이라 answer 초기값으로 처리","입력 제한","코드 오류"], a:1, ex:"answer=1로 초기화해 아무도 안 잠겼을 경우를 처리. h=1부터 시작해도 됩니다." },
+    { q: "높이 h에서 안전한 칸의 조건은?", opts:["arr[i][j] >= h","arr[i][j] > h","arr[i][j] == h","arr[i][j] != h"], a:1, ex:"arr[i][j] > h 즉 '비 높이보다 엄격하게 높아야' 잠기지 않습니다." },
+    { q: "매 높이마다 memset이 필요한 이유는?", opts:["속도 향상","이전 높이의 방문 정보를 리셋해야 해서","컴파일러 요구사항","메모리 절약"], a:1, ex:"각 높이 h마다 독립적인 BFS를 수행해야 하므로 visited를 초기화해야 합니다." }
+  ],
+  // 3: 스타트링크
+  [
+    { q: "도달 불가능할 때 출력은?", opts:["-1","0","impossible","use the stairs"], a:3, ex:'문제 조건. BFS 루프가 끝나도 G에 못 가면 "use the stairs"를 출력합니다.' },
+    { q: "F=10, S=1, G=10, U=2, D=1일 때 정답은?", opts:["4","5","6","7"], a:2, ex:"1→3→5→7→9→8→10: 총 6번 버튼 클릭." },
+    { q: "up = cur + U의 유효 범위 조건은?", opts:["up >= 1","up <= F","up > 0 && up < F","up >= 1 && up <= F"], a:1, ex:"위로 이동: F층을 초과하면 안 됨. 하한은 cur >= 1이 이미 보장되므로 up <= F만 체크." }
+  ],
+  // 4: 나이트
+  [
+    { q: "나이트의 이동 방향은 총 몇 가지?", opts:["4","6","8","12"], a:2, ex:"체스 나이트는 L자로 이동: 2칸+1칸 방향 조합 = 8가지." },
+    { q: "시작 위치와 목표 위치가 같으면?", opts:["BFS를 실행해야 함","dist[ex][ey]=0이므로 0 출력","무한 루프","오류 발생"], a:1, ex:"dist 배열이 0으로 초기화되므로 dist[ex][ey]=0이 그대로 출력됩니다." },
+    { q: "테스트케이스마다 memset을 해야 하는 이유는?", opts:["속도 향상","이전 테케의 방문/거리 정보가 남아있어서","컴파일러 규칙","배열 크기 초기화"], a:1, ex:"전역 배열은 처음에만 0, 이후 테스트케이스에서는 이전 값이 남아 잘못된 결과를 냅니다." }
+  ],
+  // 5: 토마토
+  [
+    { q: "다중 시작점 BFS에서 모든 시작점을 큐에 넣는 시점은?", opts:["BFS 루프 내부에서","입력 받을 때 바로","BFS 시작 직전에 따로","첫 번째 시작점만 넣음"], a:1, ex:"입력을 받으면서 box[i][j]==1인 칸을 즉시 큐에 추가해 다중 시작점 BFS를 구현합니다." },
+    { q: "box[nx][ny] = box[x][y] + 1 에서 box 값의 의미는?", opts:["0=익지않음","익은 날짜+1 (1이면 0일차)","방문 여부","거리"], a:1, ex:"box값 1=처음부터 익음(0일), 2=1일 후, 3=2일 후... 따라서 최대값-1이 정답." },
+    { q: "BFS 후 box에 0이 남아있으면?", opts:["그게 정상","-1 출력","0 출력","다시 BFS"], a:1, ex:"0은 아직 익지 않은 토마토. 도달 불가능한 격리 상태이므로 -1을 출력합니다." }
+  ],
+  // 6: 케빈베이컨
+  [
+    { q: "N명에 대해 BFS를 실행하는 총 횟수는?", opts:["1번","M번","N번","N×M번"], a:2, ex:"모든 사람(N명)을 시작점으로 BFS를 한 번씩 = 총 N번." },
+    { q: "예제에서 3번의 케빈 베이컨 수는?", opts:["4","5","6","7"], a:1, ex:"3→1:1, 3→2:1, 3→4:1, 3→5:2 → 합=5." },
+    { q: "각 BFS 전에 memset을 쓰는 이유는?", opts:["함수 내부에서 매번 초기화하기 위해","메모리 절약","속도 향상","컴파일러 규칙"], a:0, ex:"bfs() 함수가 호출될 때마다 visited와 dist를 초기화해야 이전 결과가 오염되지 않습니다." }
+  ]
+];
+
+const qState = {};
+
+function initQ(pi) {
+  const c = document.getElementById('qc' + pi);
+  if (c.children.length > 0) return;
+  qState[pi] = { cur: 0, score: 0 };
+  renderQ(pi);
+}
+
+function renderQ(pi) {
+  const s = qState[pi];
+  const qs = QD[pi];
+  const c = document.getElementById('qc' + pi);
+
+  if (s.cur >= qs.length) {
+    const sc = s.score, tot = qs.length;
+    const msg = sc === tot ? '🎉 완벽! 모두 정답입니다!' : sc >= tot/2 ? '👍 좋아요! 틀린 부분을 복습해보세요.' : '💪 코드를 다시 읽고 도전해보세요!';
+    c.innerHTML = `<div class="qscore show"><div class="score-big">${sc}/${tot}</div><div class="score-msg">${msg}</div><button class="vbtn primary" style="margin-top:20px" onclick="restartQ(${pi})">↺ 다시 풀기</button></div>`;
+    if (sc === tot) { document.getElementById('b' + pi).classList.add('done'); }
+    return;
+  }
+
+  const q = qs[s.cur];
+  const pct = (s.cur / qs.length * 100).toFixed(0);
+
+  c.innerHTML = `
+    <div class="quiz-prog">
+      <span>${s.cur+1}/${qs.length}</span>
+      <div class="qpbar"><div class="qpfill" style="width:${pct}%"></div></div>
+      <span>점수 ${s.score}</span>
+    </div>
+    <div class="quiz-q">${q.q}</div>
+    <div class="quiz-opts">
+      ${q.opts.map((o,i)=>`<div class="qopt" onclick="ansQ(${pi},${i},${q.a})"><span class="qlabel">${['A','B','C','D'][i]}</span>${o}</div>`).join('')}
+    </div>
+    <div class="qfb" id="qfb${pi}"></div>
+    <button class="qnext" id="qnx${pi}" onclick="nxtQ(${pi})">다음 →</button>`;
+}
+
+function ansQ(pi, chosen, correct) {
+  const s = qState[pi];
+  const q = QD[pi][s.cur];
+  document.querySelectorAll(`#qc${pi} .qopt`).forEach(o => o.onclick = null);
+  document.querySelectorAll(`#qc${pi} .qopt`)[correct].classList.add('correct');
+  if (chosen !== correct) document.querySelectorAll(`#qc${pi} .qopt`)[chosen].classList.add('wrong');
+  else s.score++;
+
+  const fb = document.getElementById('qfb'+pi);
+  fb.className = 'qfb show ' + (chosen===correct?'correct':'wrong');
+  fb.textContent = (chosen===correct?'✓ 정답! ':'✗ 오답. ') + q.ex;
+  document.getElementById('qnx'+pi).classList.add('show');
+}
+
+function nxtQ(pi) {
+  qState[pi].cur++;
+  renderQ(pi);
+}
+function restartQ(pi) {
+  document.getElementById('qc'+pi).innerHTML = '';
+  initQ(pi);
+}
+
+// ══════════════════════════════════════
+// VISUALIZATIONS
+// ══════════════════════════════════════
+
+const AMBER = '#f59e0b', GREEN = '#4ade80', TEAL = '#2dd4bf', RED = '#f87171', CREAM = '#fef3c7';
+const SURF = '#231c16', SURF2 = '#2d251d', BORDER = '#3d3028';
+
+// ── VIS 0: 숨바꼭질 1D BFS ──
+let v0timer = null;
+function resetV0() {
+  clearInterval(v0timer);
+  const cv = document.getElementById('c0');
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  drawV0(ctx, {}, null, cv.width, cv.height);
+  document.getElementById('vi0').textContent = 'dist: 0';
+  document.getElementById('vl0').textContent = '시작 버튼을 눌러 BFS 탐색을 시뮬레이션하세요.';
+}
+
+function drawV0(ctx, dist, cur, W, H) {
+  ctx.fillStyle = '#0d0b08';
+  ctx.fillRect(0,0,W,H);
+  // Show positions 0-20
+  const show = 21, boxW = W / show, boxH = 40;
+  const oy = H/2 - boxH/2;
+  for (let i = 0; i <= 20; i++) {
+    const x = i * boxW;
+    let fill = SURF;
+    if (i === cur) fill = AMBER;
+    else if (i === 5) fill = '#7c3aed';
+    else if (i === 17) fill = TEAL;
+    else if (dist[i] !== undefined) fill = 'rgba(74,222,128,0.25)';
+    ctx.fillStyle = fill;
+    ctx.fillRect(x+1, oy, boxW-2, boxH);
+    ctx.strokeStyle = BORDER;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x+1, oy, boxW-2, boxH);
+    ctx.fillStyle = i===cur?'#000':CREAM;
+    ctx.font = 'bold 10px JetBrains Mono';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(i, x+boxW/2, oy+boxH/2);
+    if (dist[i] !== undefined) {
+      ctx.fillStyle = GREEN;
+      ctx.font = '9px JetBrains Mono';
+      ctx.fillText('d:'+dist[i], x+boxW/2, oy+boxH+14);
+    }
+  }
+  // Legend
+  ctx.fillStyle = '#7c3aed'; ctx.fillRect(20, H-28, 12, 12);
+  ctx.fillStyle = CREAM; ctx.font = '10px JetBrains Mono'; ctx.textAlign = 'left';
+  ctx.fillText('N=5(시작)', 36, H-20);
+  ctx.fillStyle = TEAL; ctx.fillRect(120, H-28, 12, 12);
+  ctx.fillText('K=17(목표)', 136, H-20);
+  ctx.fillStyle = AMBER; ctx.fillRect(240, H-28, 12, 12);
+  ctx.fillText('현재', 256, H-20);
+}
+
+function startV0() {
+  clearInterval(v0timer);
+  const cv = document.getElementById('c0');
+  const ctx = cv.getContext('2d');
+  const visited = {5:true};
+  const dist = {};
+  const q = [5];
+  const steps = [];
+
+  while (q.length) {
+    const cur = q.shift();
+    if (cur === 17) { steps.push({dist:{...dist},cur}); break; }
+    [cur-1, cur+1, cur*2].forEach(nx => {
+      if (nx < 0 || nx > 20) return;
+      if (!visited[nx]) {
+        visited[nx] = true;
+        dist[nx] = (dist[cur]||0) + 1;
+        q.push(nx);
+        steps.push({dist:{...dist},cur:nx});
+      }
+    });
+    steps.push({dist:{...dist},cur});
+  }
+
+  let si = 0;
+  resetV0();
+  v0timer = setInterval(() => {
+    if (si >= steps.length) { clearInterval(v0timer);
+      document.getElementById('vl0').innerHTML = `<span class="lg">✓ 완료! 최소 이동: ${dist[17]}회</span>`; return; }
+    const s = steps[si++];
+    drawV0(ctx, s.dist, s.cur, cv.width, cv.height);
+    document.getElementById('vi0').textContent = `dist: ${s.dist[s.cur]||0}`;
+    document.getElementById('vl0').innerHTML = `위치 <span class="la">${s.cur}</span> 방문 | 거리: ${s.dist[s.cur]||0}`;
+  }, 400);
+}
+
+// ── VIS 1: 영역 구하기 ──
+const board1 = (() => {
+  const b = Array.from({length:5},()=>Array(7).fill(0));
+  [[0,2,4,4],[1,1,2,5],[4,0,6,2]].forEach(([x1,y1,x2,y2])=>{
+    for(let y=y1;y<y2;y++) for(let x=x1;x<x2;x++) if(y<5&&x<7) b[y][x]=1;
+  });
+  return b;
+})();
+
+let v1timer=null;
+function drawB1(cv,cmap){
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#0d0b08'; ctx.fillRect(0,0,cv.width,cv.height);
+  const cw=cv.width/7,ch=cv.height/5;
+  const pal=[AMBER,TEAL,GREEN,'#a78bfa','#fb923c'];
+  for(let i=0;i<5;i++) for(let j=0;j<7;j++){
+    const ci=cmap[i+','+j];
+    ctx.fillStyle=board1[i][j]===1?'#3d3028':(ci!==undefined?pal[ci%5]:'rgba(254,243,199,0.05)');
+    ctx.fillRect(j*cw+2,i*ch+2,cw-4,ch-4);
+    ctx.strokeStyle=BORDER; ctx.lineWidth=1; ctx.strokeRect(j*cw+2,i*ch+2,cw-4,ch-4);
+    if(board1[i][j]===1){ctx.fillStyle=BORDER;ctx.font='bold 10px JetBrains Mono';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('■',j*cw+cw/2,i*ch+ch/2);}
+  }
+}
+function resetV1(){clearInterval(v1timer);drawB1(document.getElementById('c1'),{});document.getElementById('vi1').textContent='영역: 0';document.getElementById('vl1').textContent='직사각형(■)을 제외한 빈 칸의 영역을 BFS로 탐색합니다.';}
+function startV1(){
+  clearInterval(v1timer);
+  const vis=Array.from({length:5},()=>Array(7).fill(false));
+  const cmap={};const steps=[];let cnt=0,pc=0;
+  const dx=[1,-1,0,0],dy=[0,0,1,-1];
+  for(let i=0;i<5;i++) for(let j=0;j<7;j++){
+    if(board1[i][j]===0&&!vis[i][j]){
+      const q=[[i,j]];vis[i][j]=true;cmap[i+','+j]=pc;cnt++;
+      while(q.length){const[x,y]=q.shift();for(let d=0;d<4;d++){const nx=x+dx[d],ny=y+dy[d];if(nx<0||nx>=5||ny<0||ny>=7||vis[nx][ny]||board1[nx][ny]===1)continue;vis[nx][ny]=true;cmap[nx+','+ny]=pc;q.push([nx,ny]);steps.push({cmap:{...cmap},cnt});}}
+      pc++;steps.push({cmap:{...cmap},cnt});
+    }
+  }
+  let si=0;const cv=document.getElementById('c1');resetV1();
+  v1timer=setInterval(()=>{
+    if(si>=steps.length){clearInterval(v1timer);document.getElementById('vl1').innerHTML=`<span class="lg">✓ 영역 ${cnt}개 발견!</span>`;return;}
+    const s=steps[si++];drawB1(cv,s.cmap);
+    document.getElementById('vi1').textContent=`영역: ${s.cnt}`;
+    document.getElementById('vl1').innerHTML=`영역 <span class="la">${s.cnt}</span> 탐색 중`;
+  },200);
+}
+
+// ── VIS 2: 안전 영역 ──
+const arr2=[[6,8,2,6,2],[3,2,3,4,6],[6,7,3,3,2],[7,2,5,3,6],[8,9,5,2,7]];
+let v2timer=null;
+function drawArr2(cv,h,cmap){
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#0d0b08';ctx.fillRect(0,0,cv.width,cv.height);
+  const n=5,cw=cv.width/n,ch=(cv.height-40)/n;
+  const pal=[AMBER,TEAL,GREEN,'#a78bfa','#fb923c','#f472b6'];
+  for(let i=0;i<n;i++) for(let j=0;j<n;j++){
+    const v=arr2[i][j];
+    const ci=cmap&&cmap[i+','+j];
+    let fill;
+    if(v<=h) fill='rgba(239,68,68,0.3)';
+    else if(ci!==undefined) fill=pal[ci%6];
+    else fill='rgba(254,243,199,0.08)';
+    ctx.fillStyle=fill;
+    ctx.fillRect(j*cw+2,i*ch+2,cw-4,ch-4);
+    ctx.strokeStyle=BORDER;ctx.lineWidth=1;ctx.strokeRect(j*cw+2,i*ch+2,cw-4,ch-4);
+    ctx.fillStyle=v<=h?'rgba(255,255,255,0.2)':CREAM;
+    ctx.font='bold 11px JetBrains Mono';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(v,j*cw+cw/2,i*ch+ch/2);
+  }
+  ctx.fillStyle=CREAM;ctx.font='11px JetBrains Mono';ctx.textAlign='left';
+  ctx.fillText(`수위: ${h}  (빨강=잠김)`,8,cv.height-12);
+}
+function resetV2(){clearInterval(v2timer);drawArr2(document.getElementById('c2'),0,null);document.getElementById('vi2').textContent='수위: 0 | 안전: 0';document.getElementById('vl2').textContent='수위를 높여가며 안전 영역 수 변화를 봅니다.';}
+function startV2(){
+  clearInterval(v2timer);
+  const maxH=9;
+  const snapshots=[];
+  const dx=[1,-1,0,0],dy=[0,0,1,-1];
+  for(let h=1;h<=maxH;h++){
+    const vis=Array.from({length:5},()=>Array(5).fill(false));
+    const cmap={};let cnt=0,pc=0;
+    for(let i=0;i<5;i++) for(let j=0;j<5;j++){
+      if(arr2[i][j]>h&&!vis[i][j]){
+        const q=[[i,j]];vis[i][j]=true;cmap[i+','+j]=pc;cnt++;
+        while(q.length){const[x,y]=q.shift();for(let d=0;d<4;d++){const nx=x+dx[d],ny=y+dy[d];if(nx<0||nx>=5||ny<0||ny>=5||vis[nx][ny]||arr2[nx][ny]<=h)continue;vis[nx][ny]=true;cmap[nx+','+ny]=pc;q.push([nx,ny]);}}
+        pc++;
+      }
+    }
+    snapshots.push({h,cnt,cmap:{...cmap}});
+  }
+  let si=0;const cv=document.getElementById('c2');resetV2();
+  v2timer=setInterval(()=>{
+    if(si>=snapshots.length){clearInterval(v2timer);const mx=Math.max(...snapshots.map(s=>s.cnt));document.getElementById('vl2').innerHTML=`<span class="lg">✓ 최대 안전 영역: ${mx}개</span>`;return;}
+    const s=snapshots[si++];
+    drawArr2(cv,s.h,s.cmap);
+    document.getElementById('vi2').textContent=`수위: ${s.h} | 안전: ${s.cnt}`;
+    document.getElementById('vl2').innerHTML=`수위 <span class="la">${s.h}</span>일 때 안전 영역: <span class="lg">${s.cnt}개</span>`;
+  },700);
+}
+
+// ── VIS 3: 스타트링크 ──
+const ELV = {F:10,S:1,G:10,U:2,D:1};
+let v3timer=null;
+function drawElv(cv,dist,cur){
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#0d0b08';ctx.fillRect(0,0,cv.width,cv.height);
+  const F=ELV.F,bw=40,bh=cv.height-40,floorH=bh/F;
+  const ox=cv.width/2-bw/2;
+  for(let fl=1;fl<=F;fl++){
+    const fy=bh-(fl-1)*floorH-floorH+8;
+    let fill=SURF;
+    if(fl===cur) fill=AMBER;
+    else if(fl===ELV.S) fill='#7c3aed';
+    else if(fl===ELV.G) fill=TEAL;
+    else if(dist[fl]!==undefined) fill='rgba(74,222,128,0.3)';
+    ctx.fillStyle=fill;ctx.fillRect(ox,fy,bw,floorH-4);
+    ctx.strokeStyle=BORDER;ctx.lineWidth=1;ctx.strokeRect(ox,fy,bw,floorH-4);
+    ctx.fillStyle=fl===cur?'#000':CREAM;ctx.font='bold 9px JetBrains Mono';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(fl,ox+bw/2,fy+floorH/2-2);
+    if(dist[fl]!==undefined){ctx.fillStyle=GREEN;ctx.font='8px JetBrains Mono';ctx.fillText(dist[fl]+'회',ox+bw+20,fy+floorH/2-2);}
+  }
+  // Labels
+  ctx.fillStyle='#7c3aed';ctx.fillRect(cv.width-120,20,10,10);ctx.fillStyle=CREAM;ctx.font='10px JetBrains Mono';ctx.textAlign='left';ctx.fillText('S=1(시작)',cv.width-106,29);
+  ctx.fillStyle=TEAL;ctx.fillRect(cv.width-120,36,10,10);ctx.fillText('G=10(목표)',cv.width-106,45);
+}
+function resetV3(){clearInterval(v3timer);const cv=document.getElementById('c3');drawElv(cv,{},null);document.getElementById('vi3').textContent='버튼: 0회';document.getElementById('vl3').textContent='엘리베이터 BFS — 최소 버튼 횟수를 찾습니다.';}
+function startV3(){
+  clearInterval(v3timer);
+  const {F,S,G,U,D}=ELV;
+  const vis={[S]:true};const dist={};const q=[S];
+  const steps=[];
+  while(q.length){
+    const cur=q.shift();
+    if(cur===G){steps.push({dist:{...dist},cur});break;}
+    [cur+U,cur-D].forEach((nx,i)=>{
+      if(nx<1||nx>F||vis[nx])return;
+      vis[nx]=true;dist[nx]=(dist[cur]||0)+1;q.push(nx);
+      steps.push({dist:{...dist},cur:nx});
+    });
+  }
+  let si=0;const cv=document.getElementById('c3');resetV3();
+  v3timer=setInterval(()=>{
+    if(si>=steps.length){clearInterval(v3timer);document.getElementById('vl3').innerHTML=`<span class="lg">✓ 최소 버튼: ${dist[G]}회</span>`;return;}
+    const s=steps[si++];drawElv(cv,s.dist,s.cur);
+    document.getElementById('vi3').textContent=`버튼: ${s.dist[s.cur]||0}회`;
+    document.getElementById('vl3').innerHTML=`${s.cur}층 도달 | <span class="la">${s.dist[s.cur]||0}번째</span> 버튼`;
+  },500);
+}
+
+// ── VIS 4: 나이트 ──
+let v4timer=null;
+function drawKnight(cv,dist,cur){
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#0d0b08';ctx.fillRect(0,0,cv.width,cv.height);
+  const n=8,cw=cv.width/n,ch=(cv.height-24)/n;
+  for(let i=0;i<n;i++) for(let j=0;j<n;j++){
+    const d=dist[i]&&dist[i][j];
+    const isS=i===0&&j===0,isE=i===0&&j===7;
+    const isCur=cur&&cur[0]===i&&cur[1]===j;
+    let fill=(i+j)%2===0?'rgba(254,243,199,0.04)':'rgba(254,243,199,0.02)';
+    if(isCur) fill=AMBER;
+    else if(isS) fill='#7c3aed';
+    else if(isE&&d>0) fill=TEAL;
+    else if(d>0) fill='rgba(74,222,128,0.2)';
+    ctx.fillStyle=fill;ctx.fillRect(j*cw+1,i*ch+1,cw-2,ch-2);
+    ctx.strokeStyle='rgba(61,48,40,0.5)';ctx.lineWidth=1;ctx.strokeRect(j*cw+1,i*ch+1,cw-2,ch-2);
+    if(d>0){ctx.fillStyle=isCur?'#000':GREEN;ctx.font='9px JetBrains Mono';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(d,j*cw+cw/2,i*ch+ch/2);}
+  }
+  ctx.fillStyle=CREAM;ctx.font='10px JetBrains Mono';ctx.textAlign='left';ctx.fillText('♞ (0,0)→(0,7) 최단 이동',4,cv.height-6);
+}
+function resetV4(){clearInterval(v4timer);const cv=document.getElementById('c4');drawKnight(cv,[],null);document.getElementById('vi4').textContent='이동: 0회';document.getElementById('vl4').textContent='체스판에서 나이트의 최단 경로를 BFS로 찾습니다.';}
+function startV4(){
+  clearInterval(v4timer);
+  const l=8,sx=0,sy=0,ex=0,ey=7;
+  const dx=[-2,-2,-1,-1,1,1,2,2],dy=[-1,1,-2,2,-2,2,-1,1];
+  const dist=Array.from({length:l},()=>Array(l).fill(0));
+  const vis=Array.from({length:l},()=>Array(l).fill(false));
+  const q=[[sx,sy]];vis[sx][sy]=true;const steps=[];
+  while(q.length){
+    const[x,y]=q.shift();
+    if(x===ex&&y===ey){steps.push({dist:dist.map(r=>[...r]),cur:[x,y]});break;}
+    for(let d=0;d<8;d++){
+      const nx=x+dx[d],ny=y+dy[d];
+      if(nx<0||nx>=l||ny<0||ny>=l||vis[nx][ny])continue;
+      vis[nx][ny]=true;dist[nx][ny]=dist[x][y]+1;q.push([nx,ny]);
+      steps.push({dist:dist.map(r=>[...r]),cur:[nx,ny]});
+    }
+  }
+  let si=0;const cv=document.getElementById('c4');resetV4();
+  v4timer=setInterval(()=>{
+    if(si>=steps.length){clearInterval(v4timer);document.getElementById('vl4').innerHTML=`<span class="lg">✓ 최소 이동: ${dist[ex][ey]}회</span>`;return;}
+    const s=steps[si++];drawKnight(cv,s.dist,s.cur);
+    document.getElementById('vi4').textContent=`이동: ${dist[s.cur[0]][s.cur[1]]}회`;
+    document.getElementById('vl4').innerHTML=`(${s.cur[0]},${s.cur[1]}) 도달 | 거리 <span class="la">${dist[s.cur[0]][s.cur[1]]}</span>`;
+  },120);
+}
+
+// ── VIS 5: 토마토 ──
+const tomato5=[
+  [0,0,0,0,0,0],
+  [0,0,0,0,0,0],
+  [0,0,0,0,0,0],
+  [0,0,0,0,0,1]
+];
+let v5timer=null;
+function drawTomato(cv,box){
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#0d0b08';ctx.fillRect(0,0,cv.width,cv.height);
+  const r=4,c=6,cw=cv.width/c,ch=(cv.height-30)/r;
+  for(let i=0;i<r;i++) for(let j=0;j<c;j++){
+    const v=box[i][j];
+    let fill=SURF;
+    if(v===1) fill='#dc2626';
+    else if(v>1) {
+      const t=Math.min((v-1)/8,1);
+      fill=`rgba(${Math.round(220*(1-t)+245*t)},${Math.round(38*(1-t)+158*t)},${Math.round(38*(1-t)+11*t)},0.9)`;
+    }
+    ctx.fillStyle=fill;ctx.fillRect(j*cw+2,i*ch+2,cw-4,ch-4);
+    ctx.strokeStyle=BORDER;ctx.lineWidth=1;ctx.strokeRect(j*cw+2,i*ch+2,cw-4,ch-4);
+    if(v>0){ctx.fillStyle='#fff';ctx.font='bold 11px JetBrains Mono';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(v===1?'●':v-1+'일',j*cw+cw/2,i*ch+ch/2);}
+  }
+  ctx.fillStyle=CREAM;ctx.font='10px JetBrains Mono';ctx.textAlign='left';
+  ctx.fillText('● 시작 익은 토마토 | 숫자 = 익은 날',4,cv.height-8);
+}
+function resetV5(){clearInterval(v5timer);drawTomato(document.getElementById('c5'),tomato5.map(r=>[...r]));document.getElementById('vi5').textContent='일수: 0';document.getElementById('vl5').textContent='여러 익은 토마토에서 동시에 BFS가 퍼져나갑니다.';}
+function startV5(){
+  clearInterval(v5timer);
+  const box=tomato5.map(r=>[...r]);
+  const dx=[1,-1,0,0],dy=[0,0,1,-1];
+  const q=[];
+  for(let i=0;i<4;i++) for(let j=0;j<6;j++) if(box[i][j]===1){q.push([i,j]);}
+  const steps=[];
+  while(q.length){
+    const[x,y]=q.shift();
+    for(let d=0;d<4;d++){
+      const nx=x+dx[d],ny=y+dy[d];
+      if(nx<0||nx>=4||ny<0||ny>=6||box[nx][ny]!==0)continue;
+      box[nx][ny]=box[x][y]+1;q.push([nx,ny]);
+      steps.push(box.map(r=>[...r]));
+    }
+  }
+  let si=0;const cv=document.getElementById('c5');resetV5();
+  v5timer=setInterval(()=>{
+    if(si>=steps.length){clearInterval(v5timer);const mx=Math.max(...box.flat())-1;document.getElementById('vl5').innerHTML=`<span class="lg">✓ 모두 익는데 ${mx}일!</span>`;return;}
+    const b=steps[si++];drawTomato(cv,b);
+    const mx=Math.max(...b.flat())-1;
+    document.getElementById('vi5').textContent=`일수: ${mx}`;
+    document.getElementById('vl5').innerHTML=`전파 중... <span class="la">${mx}일째</span>`;
+  },250);
+}
+
+// ── VIS 6: 케빈 베이컨 ──
+const nodes6=[{id:1,x:180,y:80},{id:2,x:80,y:200},{id:3,x:300,y:140},{id:4,x:420,y:80},{id:5,x:500,y:200}];
+const edges6=[[1,3],[1,4],[4,5],[4,3],[3,2]];
+let v6timer=null,v6cur=0;
+
+function drawKevin(cv,dists,startNode){
+  const ctx=cv.getContext('2d');
+  ctx.fillStyle='#0d0b08';ctx.fillRect(0,0,cv.width,cv.height);
+  edges6.forEach(([a,b])=>{
+    const na=nodes6.find(n=>n.id===a),nb=nodes6.find(n=>n.id===b);
+    ctx.beginPath();ctx.moveTo(na.x,na.y);ctx.lineTo(nb.x,nb.y);
+    ctx.strokeStyle=BORDER;ctx.lineWidth=2;ctx.stroke();
+  });
+  nodes6.forEach(n=>{
+    const d=dists&&dists[n.id];
+    ctx.beginPath();ctx.arc(n.x,n.y,26,0,Math.PI*2);
+    let fill=SURF;
+    if(n.id===startNode) fill=AMBER;
+    else if(d!==undefined&&d>0) fill='rgba(45,212,191,0.3)';
+    ctx.fillStyle=fill;ctx.fill();
+    ctx.strokeStyle=n.id===startNode?AMBER:BORDER;ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle=n.id===startNode?'#000':CREAM;
+    ctx.font='bold 14px JetBrains Mono';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(n.id,n.x,n.y);
+    if(d!==undefined&&n.id!==startNode){
+      ctx.fillStyle=TEAL;ctx.font='10px JetBrains Mono';
+      ctx.fillText('d:'+d,n.x,n.y+38);
+    }
+  });
+}
+
+const graph6={};
+edges6.forEach(([a,b])=>{if(!graph6[a])graph6[a]=[];if(!graph6[b])graph6[b]=[];graph6[a].push(b);graph6[b].push(a);});
+
+function bfs6(start){
+  const vis={[start]:true},dist={[start]:0},q=[start];
+  while(q.length){const cur=q.shift();(graph6[cur]||[]).forEach(nx=>{if(!vis[nx]){vis[nx]=true;dist[nx]=dist[cur]+1;q.push(nx);}});}
+  return dist;
+}
+
+function resetV6(){clearInterval(v6timer);v6cur=0;drawKevin(document.getElementById('c6'),null,null);document.getElementById('vi6').textContent='현재: - | 합: -';document.getElementById('vl6').textContent='각 정점에서 BFS를 실행해 거리 합을 구합니다.';}
+function startV6(){resetV6();showV6Node(1);}
+function nextV6(){v6cur=(v6cur%5)+1;showV6Node(v6cur);}
+function showV6Node(n){
+  v6cur=n;
+  const d=bfs6(n);
+  let sum=0;Object.values(d).forEach(v=>sum+=v);
+  drawKevin(document.getElementById('c6'),d,n);
+  document.getElementById('vi6').textContent=`정점: ${n} | 케빈 베이컨: ${sum}`;
+  document.getElementById('vl6').innerHTML=`<span class="la">${n}번</span> 시작 BFS | 거리 합: <span class="lg">${sum}</span>`;
+}
+
+// init canvases
+window.addEventListener('load',()=>{resetV0();resetV1();resetV2();resetV3();resetV4();resetV5();resetV6();});
+</script>
+</body>
+</html>
